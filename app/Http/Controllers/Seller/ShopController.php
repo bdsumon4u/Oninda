@@ -49,7 +49,7 @@ class ShopController extends Controller
             $shop->google = $request->google;
             $shop->twitter = $request->twitter;
             $shop->youtube = $request->youtube;
-        } else {
+        } elseif ($request->has('sliders')) {
             $shop->sliders = $request->sliders;
         }
 

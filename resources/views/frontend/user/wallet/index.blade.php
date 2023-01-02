@@ -184,6 +184,9 @@
                                         @if (addon_is_activated('paytm') && get_setting('myfatoorah') == 1)
                                             <option value="myfatoorah">{{ translate('MyFatoorah') }}</option>
                                         @endif
+                                        @if (addon_is_activated('paytm') && get_setting('khalti_payment') == 1)
+                                            <option value="khalti">{{ translate('Khalti') }}</option>
+                                        @endif
                                     </select>
                                 </div>
                             </div>

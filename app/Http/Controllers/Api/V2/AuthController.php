@@ -253,10 +253,9 @@ class AuthController extends Controller
             $existingUserByProviderId->save();
             return $this->loginSuccess($existingUserByProviderId);
         } else {
-
-            $existing_or_new_user = User::firstOrNew([
-                'email' => $social_user_details->email
-            ]);
+            $existing_or_new_user = User::firstOrNew(
+                [['email', '!=', null], 'email' => $social_user_details->email]
+            );
             
             $existing_or_new_user->user_type = 'customer';
             $existing_or_new_user->provider_id = $social_user_details->id;
@@ -264,9 +263,11 @@ class AuthController extends Controller
             if (!$existing_or_new_user->exists) {
                 if ($request->social_provider == 'apple') {
                     if($request->name) {
+                        $existing_or_new_user->name = $request->name;
+                    } else {
                         $existing_or_new_user->name = 'Apple User';
                     }
-                    $existing_or_new_user->name = $request->name;
+                    
                 } else {
                     $existing_or_new_user->name = $social_user_details->name;
                 }

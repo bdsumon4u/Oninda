@@ -1,12 +1,23 @@
 <script>
-    let default_longtitude = {{ get_setting('google_map_longtitude') }};
-    let default_latitude = {{ get_setting('google_map_latitude') }};
-    function initialize(lat=default_latitude, long=default_longtitude, id_format='') {
-        var map = new google.maps.Map(document.getElementById(id_format + 'map'), {
-                        center: {lat: lat, lng: long},
-                        zoom: 13
-                    });
+    let default_longtitude = "{{ get_setting('google_map_longtitude') }}";
+    let default_latitude = "{{ get_setting('google_map_latitude') }}";
 
+    function initialize(lat = -33.8688, lang = 151.2195, id_format = '') {
+        var long = lang;
+        var lat = lat;
+        if (default_longtitude != '' && default_latitude != '') {
+            long = default_longtitude;
+            lat = default_latitude;
+        }
+
+        var map = new google.maps.Map(document.getElementById(id_format + 'map'), {
+            center: {
+                lat: lat,
+                lng: long
+            },
+            zoom: 13
+        });
+        
         var myLatlng = new google.maps.LatLng(lat, long);
 
         var input = document.getElementById(id_format + 'searchInput');

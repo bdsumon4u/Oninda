@@ -5,6 +5,7 @@
 use App\Http\Controllers\Payment\PaytmController;
 use App\Http\Controllers\Payment\ToyyibpayController;
 use App\Http\Controllers\Payment\MyfatoorahController;
+use App\Http\Controllers\Payment\KhaltiController;
 
 
 Route::controller(PaytmController::class)->group(function () {
@@ -28,3 +29,6 @@ Route::controller(ToyyibpayController::class)->group(function () {
 
 //Myfatoorah START
 Route::get('/myfatoorah/callback', [MyfatoorahController::class,'callback'])->name('myfatoorah.callback');
+
+//Khalti START
+Route::any('/khalti/payment/done', [KhaltiController::class,'paymentDone'])->name('khalti.success');

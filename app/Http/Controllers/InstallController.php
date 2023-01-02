@@ -9,6 +9,7 @@ use Hash;
 use App\Models\BusinessSetting;
 use App\Models\User;
 use CoreComponentRepository;
+use Artisan;
 
 class InstallController extends Controller
 {
@@ -59,6 +60,7 @@ class InstallController extends Controller
         $businessSetting->save();
 
         $this->writeEnvironmentFile('APP_NAME', $request->system_name);
+        Artisan::call('key:generate');
 
         $user = new User;
         $user->name      = $request->admin_name;

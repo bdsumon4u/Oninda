@@ -112,6 +112,11 @@
             </div>
         @endif
     </div>
+    
+@endsection
+
+
+@section('script')
     @if (get_setting('google_map') == 1)
         @include('frontend.partials.google_map')
     @endif

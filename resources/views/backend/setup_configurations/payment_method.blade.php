@@ -387,6 +387,15 @@
                                 <input type="text" class="form-control" name="IYZICO_SECRET_KEY" value="{{  env('IYZICO_SECRET_KEY') }}" placeholder="{{ translate('IYZICO SECRET KEY') }}" required>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <input type="hidden" name="types[]" value="IYZICO_CURRENCY_CODE">
+                            <div class="col-md-4">
+                                <label class="col-from-label">{{translate('IYZICO CURRENCY CODE')}}</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" name="IYZICO_CURRENCY_CODE" value="{{  env('IYZICO_CURRENCY_CODE') }}" placeholder="{{ translate('IYZICO CURRENCY CODE') }}" required>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <div class="col-md-4">

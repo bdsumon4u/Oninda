@@ -155,6 +155,12 @@
                                         @if(get_setting('bkash') == 1)
                                             <option value="bkash">{{ translate('Bkash')}}</option>
                                         @endif
+                                        @if (addon_is_activated('paytm') && get_setting('myfatoorah') == 1)
+                                            <option value="myfatoorah">{{ translate('MyFatoorah') }}</option>
+                                        @endif
+                                        @if (addon_is_activated('paytm') && get_setting('khalti_payment') == 1)
+                                            <option value="khalti">{{ translate('Khalti') }}</option>
+                                        @endif
                                         @if(addon_is_activated('african_pg'))
                                             @if(get_setting('mpesa') == 1)
                                                 <option value="mpesa">{{ translate('Mpesa')}}</option>

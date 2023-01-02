@@ -10,6 +10,17 @@
     </div>
 </div>
 
+<!-- Error Meassages -->
+@if ($errors->any())
+<div class="alert alert-danger">
+    <ul>
+        @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
+
 <form class="" action="{{route('seller.products.update', $product->id)}}" method="POST" enctype="multipart/form-data"
     id="choice_form">
     <div class="row gutters-5">

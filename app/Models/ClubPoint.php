@@ -13,4 +13,8 @@ class ClubPoint extends Model
     public function order(){
     	return $this->belongsTo(Order::class);
     }
+
+    public function club_point_details(){
+    	return $this->hasMany(ClubPointDetail::class);
+    }
 }

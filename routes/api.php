@@ -86,7 +86,6 @@ Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function() {
 
 
 
-        Route::get('payment-types', 'App\Http\Controllers\Api\V2\PaymentTypesController@getList')->middleware('auth:sanctum');
 
         Route::post('reviews/submit', 'App\Http\Controllers\Api\V2\ReviewController@submit')->name('api.reviews.submit')->middleware('auth:sanctum');
 
@@ -133,7 +132,8 @@ Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function() {
 
         Route::get('wallet/balance', 'App\Http\Controllers\Api\V2\WalletController@balance')->middleware('auth:sanctum');
         Route::post('wallet/offline-recharge', 'App\Http\Controllers\Api\V2\WalletController@offline_recharge')->middleware('auth:sanctum');
-
+        
+        Route::get('payment-types', 'App\Http\Controllers\Api\V2\PaymentTypesController@getList')->middleware('auth:sanctum');
 
     });
 
@@ -145,6 +145,8 @@ Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function() {
     Route::get('classified/all', 'App\Http\Controllers\Api\V2\CustomerProductController@all');
     Route::get('classified/related-products/{id}', 'App\Http\Controllers\Api\V2\CustomerProductController@relatedProducts');
     Route::get('classified/product-details/{id}', 'App\Http\Controllers\Api\V2\CustomerProductController@productDetails');
+
+    
 
 
     Route::apiResource('banners', 'App\Http\Controllers\Api\V2\BannerController')->only('index');

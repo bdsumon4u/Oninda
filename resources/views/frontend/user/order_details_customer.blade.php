@@ -34,12 +34,12 @@
                         </tr>
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Shipping address') }}:</td>
-                            <td>{{ json_decode($order->shipping_address)->address }},
-                                {{ json_decode($order->shipping_address)->city }},
-                                @if (config('other.postal_code'))
-                                {{ json_decode($order->shipping_address)->postal_code }},
-                                @endif
-                                {{ json_decode($order->shipping_address)->country }}</td>
+                            @php($obj = json_decode($order->shipping_address))
+                            <td>{{ $obj->address }},
+                                {{ $obj->city }},
+                                @if(isset($obj->state)) {{ $obj->state }} - @endif
+                                @if (config('other.postal_code')) {{ $obj->postal_code }}, @endif
+                                {{ $obj->country }}</td>
                         </tr>
                     </table>
                 </div>
