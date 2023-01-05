@@ -65,12 +65,14 @@
             <thead>
                 <tr>
                     <th class="product-name">{{ translate('Product') }}</th>
-                    <th class="product-total text-right">{{ translate('Total') }}</th>
+                    <th class="product-total text-right">{{ translate('Buying Details') }}</th>
+                    <th class="product-total text-right">{{ translate('Selling Details') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @php
                     $subtotal = 0;
+                    $subselling = 0;
                     $tax = 0;
                     $shipping = 0;
                     $product_shipping_cost = 0;
@@ -80,6 +82,7 @@
                     @php
                         $product = \App\Models\Product::find($cartItem['product_id']);
                         $subtotal += cart_product_price($cartItem, $product, false, false) * $cartItem['quantity'];
+                        $subselling += cart_product_price($cartItem, $product, false, false) * $cartItem['quantity'];
                         $tax += cart_product_tax($cartItem, $product, false) * $cartItem['quantity'];
                         $product_shipping_cost = $cartItem['shipping_cost'];
                         
@@ -101,11 +104,16 @@
                             <span
                                 class="pl-4 pr-0">{{ single_price(cart_product_price($cartItem, $cartItem->product, false, false) * $cartItem['quantity']) }}</span>
                         </td>
+                        <td class="product-total text-right">
+                            <span
+                                class="pl-4 pr-0">{{ single_price(cart_product_price($cartItem, $cartItem->product, false, false) * $cartItem['quantity']) }}</span>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
         <input type="hidden" id="sub_total" value="{{ $subtotal }}">
+        <input type="hidden" id="sub_selling" value="{{ $subselling }}">
         <table class="table">
 
             <tfoot>
@@ -114,17 +122,23 @@
                     <td class="text-right">
                         <span class="fw-600">{{ single_price($subtotal) }}</span>
                     </td>
+                    <td class="text-right">
+                        <span class="fw-600">{{ single_price($subselling) }}</span>
+                    </td>
                 </tr>
 
                 <tr class="cart-shipping">
                     <th>{{ translate('Tax') }}</th>
-                    <td class="text-right">
+                    <td colspan="2" class="text-right">
                         <span class="font-italic">{{ single_price($tax) }}</span>
                     </td>
                 </tr>
 
                 <tr class="cart-shipping">
-                    <th>{{ translate('Total Shipping') }}</th>
+                    <th>{{ translate('Shipping') }}</th>
+                    <td class="text-right">
+                        <span class="font-italic">{{ single_price($shipping) }}</span>
+                    </td>
                     <td class="text-right">
                         <span class="font-italic">{{ single_price($shipping) }}</span>
                     </td>
@@ -133,7 +147,7 @@
                 @if (Session::has('club_point'))
                     <tr class="cart-shipping">
                         <th>{{ translate('Redeem point') }}</th>
-                        <td class="text-right">
+                        <td colspan="2" class="text-right">
                             <span class="font-italic">{{ single_price(Session::get('club_point')) }}</span>
                         </td>
                     </tr>
@@ -142,7 +156,7 @@
                 @if ($coupon_discount > 0)
                     <tr class="cart-shipping">
                         <th>{{ translate('Coupon Discount') }}</th>
-                        <td class="text-right">
+                        <td colspan="2" class="text-right">
                             <span class="font-italic">{{ single_price($coupon_discount) }}</span>
                         </td>
                     </tr>
@@ -150,6 +164,7 @@
 
                 @php
                     $total = $subtotal + $tax + $shipping;
+                    $selling = $subselling + $tax + $shipping;
                     if (Session::has('club_point')) {
                         $total -= Session::get('club_point');
                     }
@@ -162,6 +177,16 @@
                     <th><span class="strong-600">{{ translate('Total') }}</span></th>
                     <td class="text-right">
                         <strong><span>{{ single_price($total) }}</span></strong>
+                    </td>
+                    <td class="text-right">
+                        <strong><span>{{ single_price($selling) }}</span></strong>
+                    </td>
+                </tr>
+                
+                <tr class="cart-total">
+                    <th><span class="strong-600">{{ translate('Your Earning') }}</span></th>
+                    <td colspan="2" class="text-right">
+                        <strong><span>{{ single_price($selling - $total) }}</span></strong>
                     </td>
                 </tr>
             </tfoot>

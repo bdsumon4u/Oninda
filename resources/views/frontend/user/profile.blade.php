@@ -30,6 +30,12 @@
                     </div>
                 </div>
                 <div class="form-group row">
+                    <label class="col-md-2 col-form-label">{{ translate('Your bKash') }}</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" placeholder="{{ translate('Your bKash')}}" name="bKash" value="{{ Auth::user()->bKash }}">
+                    </div>
+                </div>
+                <div class="form-group row">
                     <label class="col-md-2 col-form-label">{{ translate('Photo') }}</label>
                     <div class="col-md-10">
                         <div class="input-group" data-toggle="aizuploader" data-type="image">

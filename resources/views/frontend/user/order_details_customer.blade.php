@@ -34,7 +34,7 @@
                         </tr>
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Shipping address') }}:</td>
-                            @php($obj = json_decode($order->shipping_address))
+                            @php $obj = json_decode($order->shipping_address) @endphp
                             <td>{{ $obj->address }},
                                 {{ $obj->city }},
                                 @if(isset($obj->state)) {{ $obj->state }} - @endif

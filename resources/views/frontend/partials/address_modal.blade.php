@@ -12,18 +12,18 @@
                 <div class="modal-body">
                     <div class="p-3">
                         <div class="row">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label>{{ translate('Address')}}</label>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-8">
                                 <textarea class="form-control mb-3" placeholder="{{ translate('Your Address')}}" rows="2" name="address" required></textarea>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label>{{ translate('Country')}}</label>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-8">
                                 <div class="mb-3">
                                     <select class="form-control aiz-selectpicker" data-live-search="true" data-placeholder="{{ translate('Select your country') }}" name="country_id" required>
                                         <option value="">{{ translate('Select your country') }}</option>
@@ -36,10 +36,10 @@
                         </div>
                         
                         <div class="row">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label>{{ translate('State')}}</label>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-8">
                                 <select class="form-control mb-3 aiz-selectpicker" data-live-search="true" name="state_id" required>
 
                                 </select>
@@ -47,10 +47,10 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label>{{ translate('City')}}</label>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-8">
                                 <select class="form-control mb-3 aiz-selectpicker" data-live-search="true" name="city_id" required>
 
                                 </select>
@@ -73,18 +73,18 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-2" id="">
+                                <div class="col-md-4" id="">
                                     <label for="exampleInputuname">Longitude</label>
                                 </div>
-                                <div class="col-md-10" id="">
+                                <div class="col-md-8" id="">
                                     <input type="text" class="form-control mb-3" id="longitude" name="longitude" readonly="">
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-2" id="">
+                                <div class="col-md-4" id="">
                                     <label for="exampleInputuname">Latitude</label>
                                 </div>
-                                <div class="col-md-10" id="">
+                                <div class="col-md-8" id="">
                                     <input type="text" class="form-control mb-3" id="latitude" name="latitude" readonly="">
                                 </div>
                             </div>
@@ -92,20 +92,59 @@
                         
                         @if (config('other.postal_code'))
                         <div class="row">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label>{{ translate('Postal code')}}</label>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-8">
                                 <input type="text" class="form-control mb-3" placeholder="{{ translate('Your Postal Code')}}" name="postal_code" value="" required>
                             </div>
                         </div>
                         @endif
                         <div class="row">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label>{{ translate('Phone')}}</label>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-8">
                                 <input type="text" class="form-control mb-3" placeholder="{{ translate('+880')}}" name="phone" value="" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>{{ translate(config('app.name').' Delivery Charge')}}</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control mb-3" name="app_delivery_charge" required readonly>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>{{ translate('Your Customer Delivery Charge')}}</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control mb-3" name="customer_delivery_charge" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>{{ translate('Courier')}}</label>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <select class="form-control aiz-selectpicker" data-placeholder="{{ translate('Select Preferred Courier') }}" name="courier" required>
+                                        <option value="any">{{ translate('Select Courier') }}</option>
+                                        @foreach (config('other.couriers') as $courier)
+                                            <option value="{{ $courier }}">{{ $courier }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>{{ translate('Instruction')}}</label>
+                            </div>
+                            <div class="col-md-8">
+                                <textarea class="form-control mb-3" placeholder="{{ translate('Share Order Related Instruction If You Have Any.')}}" rows="2" name="instruction"></textarea>
                             </div>
                         </div>
                         <div class="form-group text-right">
@@ -180,6 +219,11 @@
             var state_id = $(this).val();
             get_city(state_id);
         });
+
+        $(document).on('change', '[name=city_id]', function() {
+            var city_id = $(this).val();
+            delivery_charge(city_id);
+        });
         
         function get_states(country_id) {
             $('[name="state"]').html("");
@@ -219,6 +263,23 @@
                         $('[name="city_id"]').html(obj);
                         AIZ.plugins.bootstrapSelect('refresh');
                     }
+                }
+            });
+        }
+
+        function delivery_charge(city_id) {
+            $('[name="app_delivery_charge"]').val("");
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: "{{route('delivery-charge')}}",
+                type: 'POST',
+                data: {
+                    city_id: city_id
+                },
+                success: function (response) {
+                    $('[name="app_delivery_charge"]').val(response);
                 }
             });
         }

@@ -345,6 +345,19 @@
                                 </div>
 
                                 <hr>
+                                <div class="row no-gutters mt-3">
+                                    <div class="col-sm-2">
+                                        <div class="opacity-100 my-2">Selling Price (Unit):</div>
+                                    </div>
+                                   
+                                    <div class="col-sm-10">
+                                        <div class="fs-20 opacity-100">
+                                            <input type="number" name="selling_price" id="selling_price" class="form-control" placeholder="Your Selling Price" required="">
+                                        </div>
+                                        <span id="error"></span>
+                                    </div>
+                                </div>
+                                <hr>
 
                                 <div class="row no-gutters pb-3 d-none" id="chosen_price_div">
                                     <div class="col-sm-2">
@@ -360,6 +373,19 @@
                                 </div>
 
                             </form>
+                            <div class="row no-gutters mt-3">
+                                <div class="col-sm-2">
+                                    <div class="opacity-100 my-2" style="color:blue; font-size:100%; fontWeight:bold;">Suggested Retail Price:</div>
+                                </div>
+                                <div class="col-sm-10">
+                                    <div class="product-price">
+                                        <strong class="h4 fw-600 text-info">
+                                            ৳550-620
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
 
                             <div class="mt-3">
                                 @if ($detailedProduct->external_link != null)

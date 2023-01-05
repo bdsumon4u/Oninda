@@ -151,6 +151,11 @@ class AddressController extends Controller
         echo json_encode($html);
     }
 
+    public function charge(Request $request)
+    {
+        return round(City::where('status', 1)->where('id', $request->city_id)->firstOrFail()->cost);
+    }
+
     public function set_default($id){
         foreach (Auth::user()->addresses as $key => $address) {
             $address->set_default = 0;

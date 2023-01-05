@@ -108,6 +108,45 @@
                 <input type="text" class="form-control mb-3" placeholder="{{ translate('+880')}}" value="{{ $address_data->phone }}" name="phone" value="" required>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label>{{ translate(config('app.name').' Delivery Charge')}}</label>
+            </div>
+            <div class="col-md-8">
+                <input type="text" class="form-control mb-3" name="app_delivery_charge" required readonly>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label>{{ translate('Your Customer Delivery Charge')}}</label>
+            </div>
+            <div class="col-md-8">
+                <input type="text" class="form-control mb-3" name="customer_delivery_charge" value="{{ $address_data->shipping }}" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label>{{ translate('Courier')}}</label>
+            </div>
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <select class="form-control aiz-selectpicker" data-placeholder="{{ translate('Select Preferred Courier') }}" name="courier" required>
+                        <option value="any">{{ translate('Select Courier') }}</option>
+                        @foreach (config('other.couriers') as $courier)
+                            <option value="{{ $courier }}">{{ $courier }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label>{{ translate('Instruction')}}</label>
+            </div>
+            <div class="col-md-8">
+                <textarea class="form-control mb-3" placeholder="{{ translate('Share Order Related Instruction If You Have Any.')}}" rows="2" name="instruction">{{ $address_data->instruction }}</textarea>
+            </div>
+        </div>
         <div class="form-group text-right">
             <button type="submit" class="btn btn-sm btn-primary">{{translate('Save')}}</button>
         </div>
