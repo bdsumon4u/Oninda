@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Category;
 use App\Models\Cart;
 use Auth;
 use Session;
@@ -51,8 +50,12 @@ class CartController extends Controller
 
     public function addToCart(Request $request)
     {
-        
         $product = Product::find($request->id);
+        $request->validate([
+            'quantity' => 'required|numeric|min:1',
+            'selling_price' => 'required|numeric|min:'.$product->unit_price,
+        ]);
+
         $carts = array();
         $data = array();
 
@@ -158,6 +161,7 @@ class CartController extends Controller
 
             $data['quantity'] = $request['quantity'];
             $data['price'] = $price;
+            $data['selling_price'] = $request->selling_price;
             $data['tax'] = $tax;
             //$data['shipping'] = 0;
             $data['shipping_cost'] = 0;
@@ -253,6 +257,7 @@ class CartController extends Controller
 
             $data['quantity'] = 1;
             $data['price'] = $price;
+            $data['selling_price'] = $request->selling_price;
             $data['tax'] = $tax;
             $data['shipping_cost'] = 0;
             $data['product_referral_code'] = null;

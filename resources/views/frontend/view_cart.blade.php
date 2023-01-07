@@ -72,7 +72,7 @@
                                             $product_stock = $product->stocks->where('variant', $cartItem['variation'])->first();
                                             // $total = $total + ($cartItem['price'] + $cartItem['tax']) * $cartItem['quantity'];
                                             $total = $total + cart_product_price($cartItem, $product, false) * $cartItem['quantity'];
-                                            $selling = $selling + $cartItem['price'] * $cartItem['quantity'];
+                                            $selling = $selling + $cartItem['selling_price'] * $cartItem['quantity'];
                                             $product_name_with_choice = $product->getTranslation('name');
                                             if ($cartItem['variation'] != null) {
                                                 $product_name_with_choice = $product->getTranslation('name') . ' - ' . $cartItem['variation'];
@@ -99,7 +99,7 @@
                                                     <span
                                                         class="opacity-60 fs-12 d-block d-lg-none">{{ translate('Selling Price') }}</span>
                                                     <span
-                                                        class="fw-600 fs-16">{{ cart_product_price($cartItem, $product, true, true) }}</span>
+                                                        class="fw-600 fs-16">{{ single_price($cartItem['selling_price']) }}</span>
                                                 </div>
 
                                                 <div class="col-lg col-6 order-4 order-lg-0">
@@ -158,7 +158,7 @@
                             </div>
                             <div class="px-3 py-2 mb-4 border-top d-flex justify-content-between">
                                 <span class="opacity-60 fs-15">{{ translate('Your Earning') }}</span>
-                                <span class="fw-600 fs-17">{{ single_price($total - $selling) }}</span>
+                                <span class="fw-600 fs-17">{{ single_price($selling - $total) }}</span>
                             </div>
                             <div class="row align-items-center">
                                 <div class="col-md-6 text-center text-md-left order-1 order-md-0">

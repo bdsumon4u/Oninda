@@ -7,4 +7,6 @@ return [
         'Sundarban',
         'Bandarban',
     ],
+    'min_margin' => 1.20,
+    'max_margin' => 1.30,
 ];
