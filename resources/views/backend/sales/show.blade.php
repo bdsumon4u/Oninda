@@ -18,9 +18,9 @@
 
                 <!--Assign Delivery Boy-->
                 @if ($order->seller_id == $admin_user_id || get_setting('product_manage_by_admin') == 1)
-                    
+                    @php $obj = json_decode($order->shipping_address) @endphp
                     @if (addon_is_activated('delivery_boy'))
-                        <div class="col-md-3 ml-auto">
+                        <div class="col-md-3 ml-auto mb-2">
                             <label for="assign_deliver_boy">{{ translate('Assign Deliver Boy') }}</label>
                             @if (($delivery_status == 'pending' || $delivery_status == 'confirmed' || $delivery_status == 'picked_up') && auth()->user()->can('assign_delivery_boy_for_orders'))
                                 <select class="form-control aiz-selectpicker" data-live-search="true"
@@ -40,7 +40,7 @@
                         </div>
                     @endif
 
-                    <div class="col-md-3 ml-auto">
+                    <div class="col-md-3 ml-auto mb-2">
                         <label for="update_payment_status">{{ translate('Payment Status') }}</label>
                         @if (auth()->user()->can('update_order_payment_status'))
                             <select class="form-control aiz-selectpicker" data-minimum-results-for-search="Infinity"
@@ -56,7 +56,7 @@
                             <input type="text" class="form-control" value="{{ $payment_status }}" disabled>
                         @endif
                     </div>
-                    <div class="col-md-3 ml-auto">
+                    <div class="col-md-3 ml-auto mb-2">
                         <label for="update_delivery_status">{{ translate('Delivery Status') }}</label>
                         @if (auth()->user()->can('update_order_delivery_status') && $delivery_status != 'delivered' && $delivery_status != 'cancelled')
                             <select class="form-control aiz-selectpicker" data-minimum-results-for-search="Infinity"
@@ -84,12 +84,55 @@
                             <input type="text" class="form-control" value="{{ $delivery_status }}" disabled>
                         @endif
                     </div>
-                    <div class="col-md-3 ml-auto">
+                    <div class="col-md-3 ml-auto mb-2">
+                        <label for="update_commission_status">{{ translate('Commission Status') }}</label>
+                        @if (auth()->user()->can('update_order_payment_status') && $delivery_status == 'delivered' && $payment_status == 'paid' && $order->commission_status != 'paid')
+                            <select class="form-control aiz-selectpicker" data-minimum-results-for-search="Infinity"
+                                id="update_commission_status">
+                                <option value="unpaid" @if ($order->commission_status == 'unpaid') selected @endif>
+                                    {{ translate('Unpaid') }}
+                                </option>
+                                <option value="paid" @if ($order->commission_status == 'paid') selected @endif>
+                                    {{ translate('Paid') }}
+                                </option>
+                            </select>
+                        @else
+                            <input type="text" class="form-control" value="{{ $order->commission_status }}" disabled>
+                        @endif
+                    </div>
+                    <div class="col-md-3 ml-auto mb-2">
+                        <label for="update_commission_ref">
+                            {{ translate('Commission Reference') }}
+                        </label>
+                        <input type="text" class="form-control" id="update_commission_ref"
+                            value="{{ $order->commission_ref }}" @unless (auth()->user()->can('update_order_payment_status') && $delivery_status == 'delivered' && $payment_status == 'paid' && $order->commission_status != 'paid') disabled @endunless>
+                    </div>
+                    <div class="col-md-3 ml-auto mb-2">
+                        <label for="update_courier">{{ translate('Courier') }}</label>
+                        @if (auth()->user()->can('update_order_delivery_status') && $delivery_status != 'delivered' && $delivery_status != 'cancelled')
+                            <select class="form-control aiz-selectpicker" data-minimum-results-for-search="Infinity"
+                                id="update_courier">
+                                <option value="">Select Courier</option>
+                                @foreach (config('other.couriers') as $courier)
+                                    <option value="{{ $courier }}" @if(($obj->courier ?? null) == $courier) selected @endif>{{ translate($courier) }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="text" class="form-control" value="{{ $order->courier ?? null }}" disabled>
+                        @endif
+                    </div>
+                    <div class="col-md-3 ml-auto mb-2">
                         <label for="update_tracking_code">
                             {{ translate('Tracking Code (optional)') }}
                         </label>
                         <input type="text" class="form-control" id="update_tracking_code"
                             value="{{ $order->tracking_code }}">
+                    </div>
+                    <div class="col-md-3 ml-auto mb-2">
+                        <label for="instruction">
+                            {{ translate('Instruction') }}
+                        </label>
+                        <div>{{ $obj->instruction ?? null }}</div>
                     </div>
                 @endif
             </div>
@@ -101,15 +144,15 @@
             </div>
             <div class="row gutters-5">
                 <div class="col text-md-left text-center">
-                    @if(json_decode($order->shipping_address))
+                    @if($obj)
                         <address>
                             <strong class="text-main">
-                                {{ json_decode($order->shipping_address)->name }}
+                                {{ $obj->name }}
                             </strong><br>
-                            {{ json_decode($order->shipping_address)->email }}<br>
-                            {{ json_decode($order->shipping_address)->phone }}<br>
-                            {{ json_decode($order->shipping_address)->address }}, {{ json_decode($order->shipping_address)->city }}, @if(isset(json_decode($order->shipping_address)->state)) {{ json_decode($order->shipping_address)->state }} - @endif {{ json_decode($order->shipping_address)->postal_code }}<br>
-                            {{ json_decode($order->shipping_address)->country }}
+                            {{ $obj->email }}<br>
+                            {{ $obj->phone }}<br>
+                            {{ $obj->address }}, {{ $obj->city }}, @if(isset($obj->state)) {{ $obj->state }} - @endif {{ $obj->postal_code }}<br>
+                            {{ $obj->country }}
                         </address>
                     @else
                         <address>
@@ -191,12 +234,10 @@
                                 <th class="text-uppercase">{{ translate('Description') }}</th>
                                 <th data-breakpoints="lg" class="text-uppercase">{{ translate('Delivery Type') }}</th>
                                 <th data-breakpoints="lg" class="min-col text-uppercase text-center">
-                                    {{ translate('Qty') }}
+                                    {{ translate('Buying Total') }}
                                 </th>
                                 <th data-breakpoints="lg" class="min-col text-uppercase text-center">
-                                    {{ translate('Price') }}</th>
-                                <th data-breakpoints="lg" class="min-col text-uppercase text-right">
-                                    {{ translate('Total') }}</th>
+                                    {{ translate('Selling Total') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -266,13 +307,10 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        {{ $orderDetail->quantity }}
+                                        {{ $orderDetail->quantity }} x {{ single_price($orderDetail->price / $orderDetail->quantity) }} = {{ single_price($orderDetail->price) }}
                                     </td>
                                     <td class="text-center">
-                                        {{ single_price($orderDetail->price / $orderDetail->quantity) }}
-                                    </td>
-                                    <td class="text-center">
-                                        {{ single_price($orderDetail->price) }}
+                                        {{ $orderDetail->quantity }} x {{ single_price($orderDetail->selling_price / $orderDetail->quantity) }} = {{ single_price($orderDetail->selling_price) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -282,6 +320,13 @@
             </div>
             <div class="clearfix float-right">
                 <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Buying</th>
+                            <th>Selling</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <tr>
                             <td>
@@ -290,15 +335,20 @@
                             <td>
                                 {{ single_price($order->orderDetails->sum('price')) }}
                             </td>
+                            <td>
+                                {{ single_price($order->selling_total - ($obj->shipping ?? 0)) }}
+                            </td>
                         </tr>
+                        @if ($tax = $order->orderDetails->sum('tax'))
                         <tr>
                             <td>
                                 <strong class="text-muted">{{ translate('Tax') }} :</strong>
                             </td>
-                            <td>
-                                {{ single_price($order->orderDetails->sum('tax')) }}
+                            <td colspan="2">
+                                {{ single_price($tax) }}
                             </td>
                         </tr>
+                        @endif
                         <tr>
                             <td>
                                 <strong class="text-muted">{{ translate('Shipping') }} :</strong>
@@ -306,21 +356,37 @@
                             <td>
                                 {{ single_price($order->orderDetails->sum('shipping_cost')) }}
                             </td>
+                            <td>
+                                {{ single_price($obj->shipping ?? 0) }}
+                            </td>
                         </tr>
+                        @if (($discount = $order->coupon_discount) != '0.00')
                         <tr>
                             <td>
                                 <strong class="text-muted">{{ translate('Coupon') }} :</strong>
                             </td>
-                            <td>
-                                {{ single_price($order->coupon_discount) }}
+                            <td colspan="2">
+                                {{ single_price($discount) }}
                             </td>
                         </tr>
+                        @endif
                         <tr>
                             <td>
                                 <strong class="text-muted">{{ translate('TOTAL') }} :</strong>
                             </td>
                             <td class="text-muted h5">
                                 {{ single_price($order->grand_total) }}
+                            </td>
+                            <td class="text-muted h5">
+                                {{ single_price($order->selling_total) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong class="text-muted">{{ translate('COMMISSION') }} :</strong>
+                            </td>
+                            <td colspan="2" class="text-muted h5">
+                                {{ single_price($order->selling_total - $order->grand_total) }}
                             </td>
                         </tr>
                     </tbody>
@@ -359,6 +425,17 @@
                 AIZ.plugins.notify('success', '{{ translate('Delivery status has been updated') }}');
             });
         });
+        $('#update_courier').on('change', function() {
+            var order_id = {{ $order->id }};
+            var courier = $('#update_courier').val();
+            $.post('{{ route('orders.update_delivery_status') }}', {
+                _token: '{{ @csrf_token() }}',
+                order_id: order_id,
+                courier: courier
+            }, function(data) {
+                AIZ.plugins.notify('success', '{{ translate('Courier has been updated') }}');
+            });
+        });
         $('#update_payment_status').on('change', function() {
             var order_id = {{ $order->id }};
             var status = $('#update_payment_status').val();
@@ -379,6 +456,30 @@
                 tracking_code: tracking_code
             }, function(data) {
                 AIZ.plugins.notify('success', '{{ translate('Order tracking code has been updated') }}');
+            });
+        });
+        $('#update_commission_status').on('change', function() {
+            var order_id = {{ $order->id }};
+            var status = $('#update_commission_status').val();
+            $.post('{{ route('orders.update_payment_status') }}', {
+                _token: '{{ @csrf_token() }}',
+                order_id: order_id,
+                commission: true,
+                status: status
+            }, function(data) {
+                AIZ.plugins.notify('success', '{{ translate('Commission status has been updated') }}');
+            });
+        });
+        $('#update_commission_ref').on('change', function() {
+            var order_id = {{ $order->id }};
+            var ref = $('#update_commission_ref').val();
+            $.post('{{ route('orders.update_payment_status') }}', {
+                _token: '{{ @csrf_token() }}',
+                order_id: order_id,
+                commission: true,
+                ref: ref
+            }, function(data) {
+                AIZ.plugins.notify('success', '{{ translate('Commission reference has been updated') }}');
             });
         });
     </script>

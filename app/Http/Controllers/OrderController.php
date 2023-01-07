@@ -382,6 +382,13 @@ class OrderController extends Controller
     public function update_delivery_status(Request $request)
     {
         $order = Order::findOrFail($request->order_id);
+        if ($request->courier) {
+            $shipping_address = json_decode($order->shipping_address, true);
+            $shipping_address['courier'] = $request->courier;
+            $order->shipping_address = json_encode($shipping_address);
+            $order->save();
+            return 1;
+        }
         $order->delivery_viewed = '0';
         $order->delivery_status = $request->status;
         $order->save();
@@ -503,6 +510,18 @@ class OrderController extends Controller
     public function update_payment_status(Request $request)
     {
         $order = Order::findOrFail($request->order_id);
+
+        if ($request->commission && $request->status) {
+            $order->commission_status = $request->status;
+            $order->save();
+            return 1;
+        }
+        if ($request->commission && $request->ref) {
+            $order->commission_ref = $request->ref;
+            $order->save();
+            return 1;
+        }
+
         $order->payment_status_viewed = '0';
         $order->save();
 
