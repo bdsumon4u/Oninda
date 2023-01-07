@@ -149,6 +149,9 @@ class OrderController extends Controller
             $shippingAddress['city']        = $address->city->name;
             $shippingAddress['postal_code'] = $address->postal_code;
             $shippingAddress['phone']       = $address->phone;
+            $shippingAddress['shipping']    = $address->shipping;
+            $shippingAddress['courier']     = $address->courier;
+            $shippingAddress['instruction'] = $address->instruction;
             if ($address->latitude || $address->longitude) {
                 $shippingAddress['lat_lang'] = $address->latitude . ',' . $address->longitude;
             }
@@ -195,6 +198,7 @@ class OrderController extends Controller
             $order->save();
 
             $subtotal = 0;
+            $subselling = 0;
             $tax = 0;
             $shipping = 0;
             $coupon_discount = 0;
@@ -204,6 +208,7 @@ class OrderController extends Controller
                 $product = Product::find($cartItem['product_id']);
 
                 $subtotal += cart_product_price($cartItem, $product, false, false) * $cartItem['quantity'];
+                $subselling += $cartItem->selling_price * $cartItem['quantity'];
                 $tax +=  cart_product_tax($cartItem, $product, false) * $cartItem['quantity'];
                 $coupon_discount += $cartItem['discount'];
 
@@ -225,6 +230,7 @@ class OrderController extends Controller
                 $order_detail->product_id = $product->id;
                 $order_detail->variation = $product_variation;
                 $order_detail->price = cart_product_price($cartItem, $product, false, false) * $cartItem['quantity'];
+                $order_detail->selling_price = $cartItem->selling_price * $cartItem['quantity'];
                 $order_detail->tax = cart_product_tax($cartItem, $product, false) * $cartItem['quantity'];
                 $order_detail->shipping_type = $cartItem['shipping_type'];
                 $order_detail->product_referral_code = $cartItem['product_referral_code'];
@@ -271,6 +277,7 @@ class OrderController extends Controller
             }
 
             $order->grand_total = $subtotal + $tax + $shipping;
+            $order->selling_total = $subselling + $address->shipping;
 
             if ($seller_product[0]->coupon_code != null) {
                 $order->coupon_discount = $coupon_discount;

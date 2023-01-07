@@ -49,6 +49,9 @@ class AddressController extends Controller
         $address->country_id    = $request->country_id;
         $address->state_id      = $request->state_id;
         $address->city_id       = $request->city_id;
+        $address->shipping      = $request->customer_delivery_charge;
+        $address->courier       = $request->courier;
+        $address->instruction   = $request->instruction;
         $address->longitude     = $request->longitude;
         $address->latitude      = $request->latitude;
         $address->postal_code   = $request->postal_code;
@@ -101,6 +104,9 @@ class AddressController extends Controller
         $address->country_id    = $request->country_id;
         $address->state_id      = $request->state_id;
         $address->city_id       = $request->city_id;
+        $address->shipping      = $request->customer_delivery_charge;
+        $address->courier       = $request->courier;
+        $address->instruction   = $request->instruction;
         $address->longitude     = $request->longitude;
         $address->latitude      = $request->latitude;
         $address->postal_code   = $request->postal_code;

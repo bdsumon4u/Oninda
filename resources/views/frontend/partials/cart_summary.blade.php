@@ -82,7 +82,7 @@
                     @php
                         $product = \App\Models\Product::find($cartItem['product_id']);
                         $subtotal += cart_product_price($cartItem, $product, false, false) * $cartItem['quantity'];
-                        $subselling += cart_product_price($cartItem, $product, false, false) * $cartItem['quantity'];
+                        $subselling += $cartItem->selling_price * $cartItem['quantity'];
                         $tax += cart_product_tax($cartItem, $product, false) * $cartItem['quantity'];
                         $product_shipping_cost = $cartItem['shipping_cost'];
                         
@@ -106,7 +106,7 @@
                         </td>
                         <td class="product-total text-right">
                             <span
-                                class="pl-4 pr-0">{{ single_price(cart_product_price($cartItem, $cartItem->product, false, false) * $cartItem['quantity']) }}</span>
+                                class="pl-4 pr-0">{{ single_price($cartItem->selling_price * $cartItem['quantity']) }}</span>
                         </td>
                     </tr>
                 @endforeach
@@ -127,12 +127,14 @@
                     </td>
                 </tr>
 
+                @if ($tax)
                 <tr class="cart-shipping">
                     <th>{{ translate('Tax') }}</th>
                     <td colspan="2" class="text-right">
                         <span class="font-italic">{{ single_price($tax) }}</span>
                     </td>
                 </tr>
+                @endif
 
                 <tr class="cart-shipping">
                     <th>{{ translate('Shipping') }}</th>
@@ -140,7 +142,7 @@
                         <span class="font-italic">{{ single_price($shipping) }}</span>
                     </td>
                     <td class="text-right">
-                        <span class="font-italic">{{ single_price($shipping) }}</span>
+                        <span class="font-italic">{{ single_price($shipping_info->shipping) }}</span>
                     </td>
                 </tr>
 
@@ -164,7 +166,7 @@
 
                 @php
                     $total = $subtotal + $tax + $shipping;
-                    $selling = $subselling + $tax + $shipping;
+                    $selling = $subselling + $tax + $shipping_info->shipping;
                     if (Session::has('club_point')) {
                         $total -= Session::get('club_point');
                     }
