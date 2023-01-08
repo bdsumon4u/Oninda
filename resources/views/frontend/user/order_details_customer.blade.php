@@ -22,9 +22,10 @@
                             <td class="w-50 fw-600">{{ translate('Order Code') }}:</td>
                             <td>{{ $order->code }}</td>
                         </tr>
+                        @php $obj = json_decode($order->shipping_address) @endphp
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Customer') }}:</td>
-                            <td>{{ json_decode($order->shipping_address)->name }}</td>
+                            <td>{{ $obj->name }}</td>
                         </tr>
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Email') }}:</td>
@@ -34,7 +35,6 @@
                         </tr>
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Shipping address') }}:</td>
-                            @php $obj = json_decode($order->shipping_address) @endphp
                             <td>{{ $obj->address }},
                                 {{ $obj->city }},
                                 @if(isset($obj->state)) {{ $obj->state }} - @endif
@@ -53,11 +53,26 @@
                             <td class="w-50 fw-600">{{ translate('Order status') }}:</td>
                             <td>{{ translate(ucfirst(str_replace('_', ' ', $order->delivery_status))) }}</td>
                         </tr>
-                        <tr>
-                            <td class="w-50 fw-600">{{ translate('Total order amount') }}:</td>
-                            <td>{{ single_price($order->orderDetails->sum('price') + $order->orderDetails->sum('tax')) }}
+                        {{-- <tr>
+                            <td class="w-50 fw-600">{{ translate('Total buying amount') }}:</td>
+                            <td>{{ single_price($order->orderDetails->sum('price') /* + $order->orderDetails->sum('tax') */) }}
                             </td>
                         </tr>
+                        <tr>
+                            <td class="w-50 fw-600">{{ translate('Total selling amount') }}:</td>
+                            <td>{{ single_price($order->orderDetails->sum('selling_price') /* + $order->orderDetails->sum('tax') */) }}
+                            </td>
+                        </tr> --}}
+                        <tr>
+                            <td class="w50 fw-600">{{ translate('Commission Status') }}</td>
+                            <td>{{ translate($status = $order->commission_status) }}</td>
+                        </tr>
+                        @if ($status == 'paid')
+                        <tr>
+                            <td class="w50 fw-600">{{ translate('Commission Reference') }}</td>
+                            <td>{{ translate($order->commission_ref) }}</td>
+                        </tr>
+                        @endif
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Shipping method') }}:</td>
                             <td>{{ translate('Flat shipping rate') }}</td>
@@ -84,7 +99,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-9">
+        <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
                     <h5 class="h6 mb-0">{{ translate('Order Details') }}</h5>
@@ -145,7 +160,10 @@
                                             @endif
                                         @endif
                                     </td>
-                                    <td>{{ single_price($orderDetail->price) }}</td>
+                                    <td>
+                                        <div>Buying: {{ single_price($orderDetail->price) }}</div>
+                                        <div>Selling: {{ single_price($orderDetail->selling_price) }}</div>
+                                    </td>
                                     @if (addon_is_activated('refund_request'))
                                         @php
                                             $no_of_max_day = get_setting('refund_request_time');
@@ -185,7 +203,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
                     <b class="fs-15">{{ translate('Order Ammount') }}</b>
@@ -199,6 +217,10 @@
                                     <span
                                         class="strong-600">{{ single_price($order->orderDetails->sum('price')) }}</span>
                                 </td>
+                                <td class="text-right">
+                                    <span
+                                        class="strong-600">{{ single_price($order->orderDetails->sum('selling_price')) }}</span>
+                                </td>
                             </tr>
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Shipping') }}</td>
@@ -206,24 +228,41 @@
                                     <span
                                         class="text-italic">{{ single_price($order->orderDetails->sum('shipping_cost')) }}</span>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td class="w-50 fw-600">{{ translate('Tax') }}</td>
                                 <td class="text-right">
                                     <span
-                                        class="text-italic">{{ single_price($order->orderDetails->sum('tax')) }}</span>
+                                        class="text-italic">{{ single_price($obj->shipping) }}</span>
                                 </td>
                             </tr>
+                            @if ($tax = $order->orderDetails->sum('tax'))
+                            <tr>
+                                <td class="w-50 fw-600">{{ translate('Tax') }}</td>
+                                <td colspan="2" class="text-right">
+                                    <span
+                                        class="text-italic">{{ single_price($tax) }}</span>
+                                </td>
+                            </tr>
+                            @endif
+                            @if (($discount = $order->coupon_discount) != '0.00')
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Coupon') }}</td>
-                                <td class="text-right">
-                                    <span class="text-italic">{{ single_price($order->coupon_discount) }}</span>
+                                <td colspan="2" class="text-right">
+                                    <span class="text-italic">{{ single_price($discount) }}</span>
                                 </td>
                             </tr>
+                            @endif
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Total') }}</td>
                                 <td class="text-right">
-                                    <strong><span>{{ single_price($order->grand_total) }}</span></strong>
+                                    <strong><span>{{ single_price($total = $order->grand_total) }}</span></strong>
+                                </td>
+                                <td class="text-right">
+                                    <strong><span>{{ single_price($selling = $order->selling_total) }}</span></strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="w-50 fw-600">{{ translate('Commission') }}</td>
+                                <td colspan="2" class="text-right">
+                                    <strong><span>{{ single_price($selling - $total) }}</span></strong>
                                 </td>
                             </tr>
                         </tbody>

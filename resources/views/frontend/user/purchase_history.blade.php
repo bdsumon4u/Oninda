@@ -15,6 +15,7 @@
                             <th>{{ translate('Amount')}}</th>
                             <th data-breakpoints="md">{{ translate('Delivery Status')}}</th>
                             <th data-breakpoints="md">{{ translate('Payment Status')}}</th>
+                            <th data-breakpoints="md">{{ translate('Commission Status')}}</th>
                             <th class="text-right">{{ translate('Options')}}</th>
                         </tr>
                     </thead>
@@ -43,6 +44,13 @@
                                         @endif
                                         @if($order->payment_status_viewed == 0)
                                             <span class="ml-2" style="color:green"><strong>*</strong></span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($order->commission_status == 'paid')
+                                            <span class="badge badge-inline badge-success">{{translate('Paid')}}</span>
+                                        @else
+                                            <span class="badge badge-inline badge-danger">{{translate('Unpaid')}}</span>
                                         @endif
                                     </td>
                                     <td class="text-right">
