@@ -380,7 +380,11 @@
                                 <div class="col-sm-10">
                                     <div class="product-price">
                                         <strong class="h4 fw-600 text-info">
-                                            ৳{{ round($detailedProduct->unit_price * config('other.min_margin')) }}-{{ round($detailedProduct->unit_price * config('other.max_margin')) }}
+                                            ৳@if ($detailedProduct->retail_price != null)
+                                            {{ $detailedProduct->retail_price }}
+                                            @else
+                                            {{ round($detailedProduct->unit_price * config('other.min_margin')) }}-{{ round($detailedProduct->unit_price * config('other.max_margin')) }}
+                                            @endif
                                         </strong>
                                     </div>
                                 </div>

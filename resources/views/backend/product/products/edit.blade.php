@@ -282,6 +282,12 @@
                                 <input type="text" placeholder="{{translate('Unit price')}}" name="unit_price" class="form-control" value="{{$product->unit_price}}" required>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label class="col-lg-3 col-from-label">{{translate('Suggested retail price')}}</label>
+                            <div class="col-lg-6">
+                                <input type="text" placeholder="{{translate('Suggested retail price')}}" name="retail_price" class="form-control" value="{{$product->retail_price}}">
+                            </div>
+                        </div>
 
                         @php
                           $start_date = date('d-m-Y H:i:s', $product->discount_start_date);

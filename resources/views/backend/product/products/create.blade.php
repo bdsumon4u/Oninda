@@ -227,6 +227,12 @@
                                 <input type="number" lang="en" min="0" value="0" step="0.01" placeholder="{{ translate('Unit price') }}" name="unit_price" class="form-control" required>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label class="col-md-3 col-from-label">{{translate('Suggested retail price')}}</label>
+                            <div class="col-md-6">
+                                <input type="text" placeholder="{{ translate('Suggested retail price') }}" name="retail_price" class="form-control">
+                            </div>
+                        </div>
 
                         <div class="form-group row">
 	                        <label class="col-sm-3 control-label" for="start_date">{{translate('Discount Date Range')}}</label>
