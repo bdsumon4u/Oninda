@@ -25,6 +25,16 @@
                                             @endif
                                         </div>
 
+                                        <div class="form-group">
+                                            <input id="shop_name" type="text" class="form-control{{ $errors->has('shop_name') ? ' is-invalid' : '' }}" name="shop_name" value="{{ old('shop_name') }}" required placeholder="{{ translate('Shop Name') }}">
+            
+                                            @if ($errors->has('shop_name'))
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $errors->first('shop_name') }}</strong>
+                                                </span>
+                                            @endif
+                                        </div>
+
                                         @if (addon_is_activated('otp_system'))
                                             <div class="form-group phone-form-group mb-1">
                                                 <input type="tel" id="phone-code" class="form-control{{ $errors->has('phone') ? ' is-invalid' : '' }}" value="{{ old('phone') }}" placeholder="" name="phone" autocomplete="off">
@@ -54,6 +64,16 @@
                                                 @endif
                                             </div>
                                         @endif
+
+                                        <div class="form-group">
+                                            <input id="bKash" type="text" class="form-control{{ $errors->has('bKash') ? ' is-invalid' : '' }}" name="bKash" value="{{ old('bKash') }}" required placeholder="{{ translate('Your bKash') }}">
+            
+                                            @if ($errors->has('bKash'))
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $errors->first('bKash') }}</strong>
+                                                </span>
+                                            @endif
+                                        </div>
 
                                         <div class="form-group">
                                             <input type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" placeholder="{{  translate('Password') }}" name="password">
