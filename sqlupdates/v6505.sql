@@ -1,0 +1,3 @@
+ALTER TABLE `users` ADD `bKash` VARCHAR(15) AFTER `phone`;
+
+COMMIT;
