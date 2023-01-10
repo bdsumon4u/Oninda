@@ -71,7 +71,10 @@
 			</table>
 			<table>
 				<tr>
-					<td style="font-size: 1rem;" class="strong">{{ get_setting('site_name') }}</td>
+					<td style="font-size: 1rem;" class="strong">
+						<div>Shop Name:</div>
+						<div style="font-size: 1.5rem;">{{ $order->user->shop_name }}</div>
+					</td>
 					<td class="text-right"></td>
 				</tr>
 				<tr>
