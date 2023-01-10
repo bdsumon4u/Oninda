@@ -157,6 +157,7 @@ class HomeController extends Controller
 
         $user = Auth::user();
         $user->name = $request->name;
+        $user->shop_name = $request->shop_name;
         $user->address = $request->address;
         $user->country = $request->country;
         $user->city = $request->city;

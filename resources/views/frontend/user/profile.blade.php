@@ -24,6 +24,13 @@
                 </div>
 
                 <div class="form-group row">
+                    <label class="col-md-2 col-form-label">{{ translate('Shop Name') }}</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" placeholder="{{ translate('Shop Name') }}" name="shop_name" value="{{ Auth::user()->shop_name }}">
+                    </div>
+                </div>
+
+                <div class="form-group row">
                     <label class="col-md-2 col-form-label">{{ translate('Your Phone') }}</label>
                     <div class="col-md-10">
                         <input type="text" class="form-control" placeholder="{{ translate('Your Phone')}}" name="phone" value="{{ Auth::user()->phone }}">
