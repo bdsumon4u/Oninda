@@ -8,8 +8,6 @@
         </div>
         <div class="card-body">
             <div class="row gutters-5">
-                <div class="col text-md-left text-center">
-                </div>
                 @php
                     $delivery_status = $order->delivery_status;
                     $payment_status = $order->payment_status;
@@ -83,6 +81,13 @@
                         @else
                             <input type="text" class="form-control" value="{{ $delivery_status }}" disabled>
                         @endif
+                    </div>
+                    <div class="col-md-3 ml-auto mb-2">
+                        <label for="reseller_bkash">
+                            {{ translate('Reseller bKash') }}
+                        </label>
+                        <input type="text" class="form-control" id="reseller_bkash"
+                            value="{{ $order->user->bKash }}" disabled>
                     </div>
                     <div class="col-md-3 ml-auto mb-2">
                         <label for="update_commission_status">{{ translate('Commission Status') }}</label>
