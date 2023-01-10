@@ -76,6 +76,7 @@
                         <th data-breakpoints="md">{{ translate('Delivery Status') }}</th>
                         <th data-breakpoints="md">{{ translate('Payment method') }}</th>
                         <th data-breakpoints="md">{{ translate('Payment Status') }}</th>
+                        <th data-breakpoints="md">{{ translate('Commission Status') }}</th>
                         @if (addon_is_activated('refund_request'))
                         <th>{{ translate('Refund') }}</th>
                         @endif
@@ -126,6 +127,13 @@
                         </td>
                         <td>
                             @if ($order->payment_status == 'paid')
+                            <span class="badge badge-inline badge-success">{{translate('Paid')}}</span>
+                            @else
+                            <span class="badge badge-inline badge-danger">{{translate('Unpaid')}}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if ($order->commission_status == 'paid')
                             <span class="badge badge-inline badge-success">{{translate('Paid')}}</span>
                             @else
                             <span class="badge badge-inline badge-danger">{{translate('Unpaid')}}</span>
