@@ -108,8 +108,7 @@
 				@endphp
 				<tr><td class="strong small gry-color">{{ translate('Bill to') }}:</td></tr>
 				<tr><td class="strong">{{ $shipping_address->name }}</td></tr>
-				@php $obj = json_decode($order->shipping_address) @endphp
-				<tr><td class="gry-color small">{{ $shipping_address->address }}, {{ $shipping_address->city }},  @if(isset($obj->state)) {{ $obj->state }} - @endif  @if(isset($obj->postal_code)) {{ $obj->postal_code }}, @endif {{ $shipping_address->country }}</td></tr>
+				<tr><td class="gry-color small">{{ $shipping_address->address }}, {{ $shipping_address->city }},  @if(isset($shipping_address->state)) {{ $shipping_address->state }} - @endif  @if(isset($shipping_address->postal_code)) {{ $shipping_address->postal_code }}, @endif {{ $shipping_address->country }}</td></tr>
 				<tr><td class="gry-color small">{{ translate('Email') }}: {{ $shipping_address->email }}</td></tr>
 				<tr><td class="gry-color small">{{ translate('Phone') }}: {{ $shipping_address->phone }}</td></tr>
 			</table>
@@ -166,11 +165,11 @@
 									@endif
 								</td>
 								<td class="">{{ $orderDetail->quantity }}</td>
-								<td class="currency">{{ single_price($orderDetail->price/$orderDetail->quantity) }}</td>
+								<td class="currency">{{ single_price($orderDetail->selling_price/$orderDetail->quantity) }}</td>
 								@if($hasTax)
 								<td class="currency">{{ single_price($orderDetail->tax/$orderDetail->quantity) }}</td>
 			                    @endif
-								<td class="text-right currency">{{ single_price($orderDetail->price+$orderDetail->tax) }}</td>
+								<td class="text-right currency">{{ single_price($orderDetail->selling_price) }}</td>
 							</tr>
 		                @endif
 					@endforeach
@@ -199,11 +198,11 @@
 						        <tbody>
 							        <tr>
 							            <th class="gry-color text-left">{{ translate('Sub Total') }}</th>
-							            <td class="currency">{{ single_price($order->orderDetails->sum('price')) }}</td>
+							            <td class="currency">{{ single_price($order->orderDetails->sum('selling_price')) }}</td>
 							        </tr>
 							        <tr>
 							            <th class="gry-color text-left">{{ translate('Shipping Cost') }}</th>
-							            <td class="currency">{{ single_price($order->orderDetails->sum('shipping_cost')) }}</td>
+							            <td class="currency">{{ single_price($shipping_address->shipping) }}</td>
 							        </tr>
 									@if($hasTax)
 							        <tr class="border-bottom">
@@ -217,7 +216,7 @@
 							        </tr>
 							        <tr>
 							            <th class="text-left strong">{{ translate('Grand Total') }}</th>
-							            <td class="currency">{{ single_price($order->grand_total) }}</td>
+							            <td class="currency">{{ single_price($order->selling_total) }}</td>
 							        </tr>
 						        </tbody>
 						    </table>
