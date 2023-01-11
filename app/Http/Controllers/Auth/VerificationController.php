@@ -83,6 +83,10 @@ class VerificationController extends Controller
 
     public function verification_confirmation($code){
         $user = User::where('verification_code', $code)->first();
+        if (! $user) {
+            flash(translate('Invalid verification code. Please try again'))->error();
+            return redirect()->route('verification.notice');
+        }
         if($user != null){
             $user->email_verified_at = Carbon::now();
             $user->save();
