@@ -57,11 +57,11 @@ use App\Http\Controllers\ZoneController;
   |
  */
 //Update Routes
-Route::controller(UpdateController::class)->group(function () {
-    Route::post('/update', 'step0')->name('update');
-    Route::get('/update/step1', 'step1')->name('update.step1');
-    Route::get('/update/step2', 'step2')->name('update.step2');
-});
+// Route::controller(UpdateController::class)->group(function () {
+//     Route::post('/update', 'step0')->name('update');
+//     Route::get('/update/step1', 'step1')->name('update.step1');
+//     Route::get('/update/step2', 'step2')->name('update.step2');
+// });
 
 Route::get('/admin', [AdminController::class, 'admin_dashboard'])->name('admin.dashboard')->middleware(['auth', 'admin']);
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function() {
