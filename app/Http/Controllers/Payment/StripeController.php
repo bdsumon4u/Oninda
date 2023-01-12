@@ -73,6 +73,7 @@ class StripeController extends Controller
 
     public function checkout_payment_detail()
     {
+        return;
         $url = $_SERVER['SERVER_NAME'];
         $gate = "http://206.189.81.181/check_addon_activation/".$url;
 

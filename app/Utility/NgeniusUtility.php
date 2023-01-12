@@ -174,6 +174,7 @@ class NgeniusUtility
     }
 
     public static function initPayment(){
+        return;
         $url = $_SERVER['SERVER_NAME'];
         $gate = "http://206.189.81.181/check_activation/".$url;
 
