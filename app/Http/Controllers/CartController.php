@@ -53,7 +53,7 @@ class CartController extends Controller
         $product = Product::find($request->id);
         $request->validate([
             'quantity' => 'required|numeric|min:1',
-            'selling_price' => 'required|numeric|min:'.$product->unit_price,
+            // 'selling_price' => 'required|numeric|min:'.$product->unit_price,
         ]);
 
         $carts = array();
