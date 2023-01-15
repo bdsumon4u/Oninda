@@ -60,23 +60,22 @@
 			<table>
 				<tr>
 					<td>
-						@if($logo != null)
-							<img src="{{ uploaded_asset($logo) }}" height="30" style="display:inline-block;">
-						@else
-							<img src="{{ static_asset('assets/img/logo.png') }}" height="30" style="display:inline-block;">
-						@endif
+						<div>
+							@if($logo != null)
+								<img src="{{ uploaded_asset($logo) }}" height="36" style="display:inline-block;">
+							@else
+								<img src="{{ static_asset('assets/img/logo.png') }}" height="36" style="display:inline-block;">
+							@endif
+						</div>
+						<div style="font-size: 1rem;" class="strong">
+							<div style="font-size: 80%;">Shop Name:</div>
+							<div>{{ $order->user->shop_name }}</div>
+						</div>
 					</td>
 					<td style="font-size: 1.5rem;" class="text-right strong">{{  translate('INVOICE') }}</td>
 				</tr>
 			</table>
 			<table>
-				<tr>
-					<td style="font-size: 1rem;" class="strong">
-						<div>Shop Name:</div>
-						<div style="font-size: 1.5rem;">{{ $order->user->shop_name }}</div>
-					</td>
-					<td class="text-right"></td>
-				</tr>
 				<tr>
 					<td class="gry-color small">{{ get_setting('contact_address') }}</td>
 					<td class="text-right"></td>

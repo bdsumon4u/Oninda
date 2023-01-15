@@ -141,8 +141,8 @@ class OrderController extends Controller
 
         $shippingAddress = [];
         if ($address != null) {
-            $shippingAddress['name']        = Auth::user()->name;
-            $shippingAddress['email']       = Auth::user()->email;
+            $shippingAddress['name']        = $address->name;
+            $shippingAddress['email']       = $address->email;
             $shippingAddress['address']     = $address->address;
             $shippingAddress['country']     = $address->country->name;
             $shippingAddress['state']       = $address->state->name;
