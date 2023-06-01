@@ -462,6 +462,7 @@
 
             if(checkAddToCartValidity()) {
                 $('#addToCart').modal();
+                $('.c-preloader').html('<i class="las la-spinner la-spin la-3x opacity-70"></i>');
                 $('.c-preloader').show();
                 $.ajax({
                     type:"POST",
@@ -476,6 +477,10 @@
                        AIZ.extra.plusMinus();
                        AIZ.plugins.slickCarousel();
                        updateNavCart(data.nav_cart_view,data.cart_count);
+                    },
+                    error: function(error){
+                        $('#addToCart .c-preloader').html('<div class="text-danger">You must enter <strong>selling price</strong>.</div>')
+                        AIZ.plugins.notify('danger', "{{ translate('Have you entered selling price?') }}");
                     }
                 });
             }
@@ -493,6 +498,7 @@
             if(checkAddToCartValidity()) {
                 $('#addToCart-modal-body').html(null);
                 $('#addToCart').modal();
+                $('.c-preloader').html('<i class="las la-spinner la-spin la-3x opacity-70"></i>');
                 $('.c-preloader').show();
                 $.ajax({
                    type:"POST",
@@ -512,7 +518,11 @@
                             $('#modal-size').removeClass('modal-lg');
                             $('#addToCart-modal-body').html(data.modal_view);
                        }
-                   }
+                   },
+                    error: function(error){
+                        $('#addToCart .c-preloader').html('<div class="text-danger">You must enter <strong>selling price</strong>.</div>')
+                        AIZ.plugins.notify('danger', "{{ translate('Have you entered selling price?') }}");
+                    }
                });
             }
             else{
