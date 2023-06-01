@@ -35,7 +35,7 @@
                                         @endif
                                     </div>
 
-                                    <div class="form-group text-right">
+                                    <div class="form-group text-right d-none">
                                         <button class="btn btn-link p-0 opacity-50 text-reset" type="button"
                                             onclick="toggleEmailPhone(this)">{{ translate('Use Email Instead') }}</button>
                                     </div>
