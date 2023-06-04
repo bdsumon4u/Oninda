@@ -116,7 +116,7 @@
                                                                 class="col border-0 text-center flex-grow-1 fs-16 input-number"
                                                                 placeholder="1" value="{{ $cartItem['quantity'] }}"
                                                                 min="{{ $product->min_qty }}"
-                                                                max="{{ $product_stock->qty }}"
+                                                                max="{{ $product_stock->qty ?? null }}"
                                                                 onchange="updateQuantity({{ $cartItem['id'] }}, this)">
                                                             <button
                                                                 class="btn col-auto btn-icon btn-sm btn-circle btn-light"
