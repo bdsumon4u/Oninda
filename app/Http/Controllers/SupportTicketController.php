@@ -101,7 +101,7 @@ class SupportTicketController extends Controller
         $array['subject'] = translate('Support ticket Code is').':- '.$ticket->code;
         $array['from'] = env('MAIL_FROM_ADDRESS');
         $array['content'] = translate('Hi. A ticket has been created. Please check the ticket.');
-        $array['link'] = route('support_ticket.show', encrypt($ticket->id));
+        $array['link'] = $ticket->user->user_type == 'seller' ? route('seller.support_ticket.show', encrypt($ticket->id)) : route('support_ticket.show', encrypt($ticket->id));
         $array['sender'] = $tkt_reply->user->name;
         $array['details'] = $tkt_reply->reply;
 

@@ -24,20 +24,23 @@ class RazorpayController
         $user = User::find($user_id);
 
         $package_id = 0;
-        if(isset($request->package_id)){
+        if (isset($request->package_id)) {
             $package_id = $request->package_id;
         }
 
+        $api = new Api(env('RAZOR_KEY'), env('RAZOR_SECRET'));
+        $res = $api->order->create(array('receipt' => '123', 'amount' => $amount*100, 'currency' => 'INR', 'notes' => array('key1' => 'value3', 'key2' => 'value2')));
+
         if ($payment_type == 'cart_payment') {
             $combined_order = CombinedOrder::find($combined_order_id);
-            $shipping_address = json_decode($combined_order->shipping_address,true);
-            return view('frontend.razorpay.order_payment', compact('user','combined_order', 'shipping_address'));
+            $shipping_address = json_decode($combined_order->shipping_address, true);
+            return view('frontend.razorpay.order_payment', compact('user', 'combined_order', 'shipping_address','res'));
         } elseif ($payment_type == 'wallet_payment') {
 
-            return view('frontend.razorpay.wallet_payment',  compact('user', 'amount'));
-        } elseif ($payment_type == 'seller_package_payment' ||$payment_type == "customer_package_payment") {
+            return view('frontend.razorpay.wallet_payment',  compact('user', 'amount','res'));
+        } elseif ($payment_type == 'seller_package_payment' || $payment_type == "customer_package_payment") {
 
-            return view('frontend.razorpay.wallet_payment',  compact('user', 'amount','package_id'));
+            return view('frontend.razorpay.wallet_payment',  compact('user', 'amount', 'package_id','res'));
         }
     }
 
@@ -55,6 +58,15 @@ class RazorpayController
         if (count($input) && !empty($input['razorpay_payment_id'])) {
             $payment_detalis = null;
             try {
+                // Verify Payment Signature
+                $attributes = array(
+                    'razorpay_order_id' => $input['razorpay_order_id'],
+                    'razorpay_payment_id' => $input['razorpay_payment_id'],
+                    'razorpay_signature' => $input['razorpay_signature']
+                );
+                $api->utility->verifyPaymentSignature($attributes);
+                //End of  Verify Payment Signature
+
                 $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
                 $payment_details = json_encode(array('id' => $response['id'], 'method' => $response['method'], 'amount' => $response['amount'], 'currency' => $response['currency']));
 
@@ -85,17 +97,14 @@ class RazorpayController
             if ($payment_type == 'seller_package_payment') {
                 seller_purchase_payment_done($request->user_id, $request->package_id, $request->amount, 'Razorpay', $request->payment_details);
             }
-            
+
             if ($payment_type == 'customer_package_payment') {
                 customer_purchase_payment_done($request->user_id, $request->package_id);
             }
 
             return response()->json(['result' => true, 'message' => translate("Payment is successful")]);
-
-
         } catch (\Exception $e) {
             return response()->json(['result' => false, 'message' => $e->getMessage()]);
         }
     }
-
 }

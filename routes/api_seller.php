@@ -31,6 +31,8 @@ Route::group(['prefix' => 'v2/seller', 'middleware' => ['app_language']], functi
             Route::get('shop/info', 'info');
             Route::get('package/info', 'pacakge');
             Route::post('shop-update', 'update');
+            Route::get('shop-verify-form', 'getVerifyForm');
+            Route::post('shop-verify-info-store', 'store_verify_info');
         });
 
         //Refund Section

@@ -91,6 +91,7 @@ class OrderController extends Controller
             //     $order->pickup_point_id = $cartItems->first()->pickup_point;
             // }
 
+            $order->order_from = 'app';
             $order->payment_type = $request->payment_type;
             $order->delivery_viewed = '0';
             $order->payment_status_viewed = '0';

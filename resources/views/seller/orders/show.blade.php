@@ -49,7 +49,7 @@
                                     {{ translate('Cancel') }}</option>
                             </select>
                         @else
-                            <input type="text" class="form-control" value="{{ $delivery_status }}" disabled>
+                            <input type="text" class="form-control" value="{{ translate(ucfirst(str_replace('_', ' ', $delivery_status))) }}" disabled>
                         @endif
                     </div>
                 @endif

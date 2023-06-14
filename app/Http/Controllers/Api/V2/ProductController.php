@@ -51,15 +51,14 @@ class ProductController extends Controller
         $str = '';
         $tax = 0;
         $quantity = 1;
-        if ($request->has('quantity')) {
+
+        
+
+        if ($request->has('quantity') && $request->quantity !=null) {
             $quantity = $request->quantity;
         }
 
-        if ($request->has('color')) {
-            $str = $request['color'];
-        }
-
-        if ($request->has('color') && $request->color != "") {
+        if ($request->has('color') && $request->color != null) {
             $str = Color::where('code', '#' . $request->color)->first()->name;
         }
 
@@ -77,7 +76,6 @@ class ProductController extends Controller
 
         if ($product->wholesale_product) {
             $wholesalePrice = $product_stock->wholesalePrices->where('min_qty', '<=', $quantity)->where('max_qty', '>=', $quantity)->first();
-            // dd($wholesalePrice);
             if ($wholesalePrice) {
                 $price = $wholesalePrice->price;
             }
@@ -184,9 +182,8 @@ class ProductController extends Controller
         $products = Product::where('brand_id', $id)->physical();
         if ($request->name != "" || $request->name != null) {
             $products = $products->where('name', 'like', '%' . $request->name . '%');
-
-            return new ProductMiniCollection(filter_products($products)->latest()->paginate(10));
         }
+        return new ProductMiniCollection(filter_products($products)->latest()->paginate(10));
     }
 
     public function todaysDeal()

@@ -10131,13 +10131,22 @@ ul.apps a:hover i{
 }
 
 .hover-user-top-menu{
-    transition: all 0.5s ease-out;;
-    opacity: 0;
-    visibility: hidden;
+    display: none;
 }
 .hover-user-top-menu.active{
-    opacity: 1;
-    visibility: visible;
+    display: block;
+    animation: toggle_show 0.5s
+}
+
+@keyframes toggle_show {
+    0% {
+         opacity: 0;
+         transform: translateY(0)
+    }
+    100% {
+         opacity: 1;
+         transform: translateY(100)
+    }
 }
 
 /*front widgets (footer)*/
@@ -11182,6 +11191,9 @@ ul.apps a:hover i{
     fill: var(--primary) !important;
 }
 
+.aiz-carousel.product-gallery-thumb .slick-track {
+    transform: translate3d(0, 0, 0) !important;
+}
 @media (min-width: 576px){
     .aiz-mobile-bottom-nav{
         width: 463px !important;

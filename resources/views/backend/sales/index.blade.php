@@ -108,7 +108,9 @@
                             <td>{{ ($key+1) + ($orders->currentPage() - 1)*$orders->perPage() }}</td>
                         @endif
                         <td>
-                            {{ $order->code }}@if($order->viewed == 0) <span class="badge badge-inline badge-info">{{translate('New')}}</span>@endif
+                            {{ $order->code }}
+                            @if($order->viewed == 0) <span class="badge badge-inline badge-info">{{translate('New')}}</span>@endif
+                            {{-- @if(addon_is_activated('pos_system') && $order->order_from == 'pos') <span class="badge badge-inline badge-danger">{{ translate('POS') }}</span>@endif --}}
                         </td>
                         <td>
                             {{ count($order->orderDetails) }}

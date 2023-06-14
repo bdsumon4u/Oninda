@@ -30,7 +30,7 @@
                             <td>
                                 {{ single_price($payment->amount) }}
                             </td>
-                            <td>{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }} @if ($payment->txn_code != null) ({{ translate('TRX ID') }} : {{ $payment->txn_code }}) @endif</td>
+                            <td>{{ translate(ucfirst(str_replace('_', ' ', $payment->payment_method))) }} @if ($payment->txn_code != null) ({{ translate('TRX ID') }} : {{ $payment->txn_code }}) @endif</td>
                         </tr>
                     @endif
                 @endforeach

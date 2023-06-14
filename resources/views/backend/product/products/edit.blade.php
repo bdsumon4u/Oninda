@@ -839,7 +839,7 @@
                 $('#sku_combination').html(data);
                 setTimeout(() => {
                         AIZ.uploader.previewGenerate();
-                }, "500");
+                }, "2000");
                 AIZ.plugins.fooTable();
                 if (data.length > 1) {
                     $('#show-hide-div').hide();

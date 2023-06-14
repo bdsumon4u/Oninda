@@ -2,10 +2,11 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
 use App;
-use Session;
 use Config;
+use Closure;
+use Session;
+use Carbon\Carbon;
 
 class Language
 {
@@ -27,6 +28,9 @@ class Language
 
         App::setLocale($locale);
         $request->session()->put('locale', $locale);
+
+        $langcode = Session::has('langcode') ? Session::get('langcode') : 'en';
+        Carbon::setLocale($langcode);
 
         return $next($request);
     }

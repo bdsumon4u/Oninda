@@ -16,7 +16,8 @@
             <script src="https://checkout.razorpay.com/v1/checkout.js"
                     data-key="{{ env('RAZOR_KEY') }}"
                     data-amount={{$amount * 100}}
-                        data-buttontext=""
+                    data-order_id="{{ $res->id }}"
+                    data-buttontext=""
                     data-name="{{ env('APP_NAME') }}"
                     data-description="Wallet Payment"
                     data-image="{{ uploaded_asset(get_setting('header_logo')) }}"

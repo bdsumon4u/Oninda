@@ -339,4 +339,15 @@ class ProductController extends Controller
             return back();
         }
     }
+
+    public function bulk_product_delete(Request $request)
+    {
+        if ($request->id) {
+            foreach ($request->id as $product_id) {
+                $this->destroy($product_id);
+            }
+        }
+
+        return 1;
+    }
 }

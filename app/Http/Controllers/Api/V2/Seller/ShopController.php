@@ -50,8 +50,6 @@ class ShopController extends Controller
 
     public function update(Request $request)
     {
-
-
         $shop = Shop::where('user_id', auth()->user()->id)->first();
         $successMessage = 'Shop info updated successfully';
         $failedMessage = 'Shop info updated failed';
@@ -244,6 +242,49 @@ class ShopController extends Controller
             }
 
             return $this->success(translate('Your Shop has been created successfully!'));
+        }
+
+        return $this->failed(translate('Something Wenr Wrong!'));
+    }
+
+
+    public function getVerifyForm()
+    {
+        $forms= BusinessSetting::where('type', 'verification_form')->first();
+        return response()->json(json_decode($forms->value));
+    }
+
+    public function store_verify_info(Request $request)
+    {
+        $data = array();
+        $i = 0;
+        foreach (json_decode(BusinessSetting::where('type', 'verification_form')->first()->value) as $key => $element) {
+            $item = array();
+            if ($element->type == 'text') {
+                $item['type'] = 'text';
+                $item['label'] = $element->label;
+                $item['value'] = $request['element_' . $i];
+            } elseif ($element->type == 'select' || $element->type == 'radio') {
+                $item['type'] = 'select';
+                $item['label'] = $element->label;
+                $item['value'] = $request['element_' . $i];
+            } elseif ($element->type == 'multi_select') {
+                $item['type'] = 'multi_select';
+                $item['label'] = $element->label;
+                $item['value'] = json_encode($request['element_' . $i]);
+            } elseif ($element->type == 'file') {
+                $item['type'] = 'file';
+                $item['label'] = $element->label;
+                $item['value'] = $request['element_' . $i]->store('uploads/verification_form');
+            }
+            array_push($data, $item);
+            $i++;
+        }
+
+        $shop = auth()->user()->shop;
+        $shop->verification_info = json_encode($data);
+        if ($shop->save()) {
+            return $this->success(translate('Your shop verification request has been submitted successfully!'));
         }
 
         return $this->failed(translate('Something Wenr Wrong!'));

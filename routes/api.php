@@ -215,7 +215,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function () {
 
     Route::get('products/featured-from-seller/{id}', 'App\Http\Controllers\Api\V2\ProductController@newFromSeller')->name('products.featuredromSeller');
     Route::get('products/search', 'App\Http\Controllers\Api\V2\ProductController@search');
-    Route::get('products/variant/price', 'App\Http\Controllers\Api\V2\ProductController@getPrice');
+    Route::post('products/variant/price', 'App\Http\Controllers\Api\V2\ProductController@getPrice');
     // Route::get('products/home', 'App\Http\Controllers\Api\V2\ProductController@home');
     Route::get('products/digital', 'App\Http\Controllers\Api\V2\ProductController@digital')->name('products.digital');
     Route::apiResource('products', 'App\Http\Controllers\Api\V2\ProductController')->except(['store', 'update', 'destroy']);

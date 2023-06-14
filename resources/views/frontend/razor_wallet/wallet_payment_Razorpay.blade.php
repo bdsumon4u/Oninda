@@ -2,29 +2,41 @@
 
 @section('content')
 
-    <form action="{!!route('payment.rozer')!!}" method="POST" id='rozer-pay' style="display: none;">
-        <!-- Note that the amount is in paise = 50 INR -->
-        <!--amount need to be in paisa-->
-        <script src="https://checkout.razorpay.com/v1/checkout.js"
-                data-key="{{ env('RAZOR_KEY') }}"
-                data-amount={{Session::get('payment_data')['amount']*100}}
-                data-buttontext=""
-                data-name="{{ env('APP_NAME') }}"
-                data-description="Wallet Payment"
-                data-image="{{ uploaded_asset(get_setting('header_logo')) }}"
-                data-prefill.name="{{ Auth::user()->name}}"
-                data-prefill.email="{{ Auth::user()->email ?? ''}}"
-                data-theme.color="#ff7529">
-        </script>
-        <input type="hidden" name="_token" value="{!!csrf_token()!!}">
-    </form>
-
 @endsection
 
 @section('script')
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#rozer-pay').submit()
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        var options = {
+            "key": "{{ env('RAZOR_KEY') }}", // Enter the Key ID generated from the Dashboard
+            "amount": "{{ Session::get('payment_data')['amount'] * 100 }}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            "currency": "INR",
+            "name": "{{ env('APP_NAME') }}", //your business name
+            "description": "{{ Session::get('payment_type') }}",
+            "image": "{{ uploaded_asset(get_setting('header_logo')) }}",
+            "order_id": "{{ $res->id }}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            "callback_url": "{{ route('payment.rozer') }}",
+            "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information especially their phone number
+                "name": "{{ Auth::user()->name }}", //your customer's name
+                "email": "{{ Auth::user()->email ?? '' }}",
+                // "contact": "9000090000" //Provide the customer's phone number for better conversion rates 
+            },
+            "notes": {
+                "user_id": "{{ auth()->id() }}"
+            },
+            "theme": {
+                "color": "#ff7529"
+            }
+        };
+        var rzp1 = new Razorpay(options);   
+
+        $(document).ready(function() {
+            rzp1.open();
+            e.preventDefault();
+        });
+        $('#modal-close').click(function(){
+            window.location = "{{ route('wallet.index') }}";
         });
     </script>
+  
 @endsection

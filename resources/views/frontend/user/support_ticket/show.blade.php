@@ -9,7 +9,7 @@
                <div class="mt-4 fs-14">
                    <span class="fw-700 text-dark"> {{ $ticket->user->name }} </span>
                    <span class="ml-2 text-secondary"> {{ $ticket->created_at }} </span>
-                   <span class="badge badge-inline badge-gray ml-2 p-3 fs-12" style="border-radius: 25px; min-width: 80px !important;"> {{ ucfirst($ticket->status) }} </span>
+                   <span class="badge badge-inline badge-gray ml-2 p-3 fs-12" style="border-radius: 25px; min-width: 80px !important;"> {{ translate(ucfirst($ticket->status)) }} </span>
                </div>
             </div>
         </div>
