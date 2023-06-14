@@ -266,12 +266,12 @@
                                     <textarea class="form-control mb-3" placeholder="{{ translate('Your Address')}}" rows="2" name="address" required></textarea>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <label>{{ translate('Country')}}</label>
-                                </div>
-                                <div class="col-md-10">
-                                    <div class="mb-3">
+                            @php($country = \App\Models\Country::where('name', 'Bangladesh')->firstOrFail())
+                            <input type="hidden" name="country_id" value="{{ $country->id }}">
+                            {{-- <div class="form-group">
+                                <div class=" row">
+                                    <label class="col-sm-2 control-label">{{translate('Country')}}</label>
+                                    <div class="col-sm-10">
                                         <select class="form-control aiz-selectpicker" data-live-search="true" data-placeholder="{{ translate('Select your country') }}" name="country_id" required>
                                             <option value="">{{ translate('Select your country') }}</option>
                                             @foreach (\App\Models\Country::where('status', 1)->get() as $key => $country)
@@ -280,16 +280,20 @@
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <label>{{ translate('State')}}</label>
-                                </div>
-                                <div class="col-md-10">
-                                    <select class="form-control mb-3 aiz-selectpicker" data-live-search="true" name="state_id" required>
-
-                                    </select>
+                            </div> --}}
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-2 control-label"">
+                                        <label>{{ translate('State')}}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <select class="form-control mb-3 aiz-selectpicker" data-live-search="true" name="state_id" required>
+                                            <option value="">{{ translate('Select State') }}</option>
+                                            @foreach (\App\Models\State::where('country_id', $country->id)->where('status', 1)->get() as $key => $state)
+                                                <option value="{{ $state->id }}">{{ $state->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
