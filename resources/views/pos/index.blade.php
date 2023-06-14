@@ -76,11 +76,11 @@
                                             <div class="row gutters-5 align-items-center">
                                                 <div class="col-auto w-60px">
                                                     <div class="row no-gutters align-items-center flex-column aiz-plus-minus">
-                                                        <button class="btn col-auto btn-icon btn-sm fs-15" type="button" data-type="plus" data-field="qty-{{ $key }}">
+                                                        <button class="btn col-auto btn-icon btn-sm fs-15" type="button" data-type="plus" data-field="qty-{{ $key }}" @if($stock->product->digital == 1) disabled @endif>
                                                             <i class="las la-plus"></i>
                                                         </button>
                                                         <input type="text" name="qty-{{ $key }}" id="qty-{{ $key }}" class="col border-0 text-center flex-grow-1 fs-16 input-number" placeholder="1" value="{{ $cartItem['quantity'] }}" min="{{ $stock->product->min_qty }}" max="{{ $stock->qty }}" onchange="updateQuantity({{ $key }})">
-                                                        <button class="btn col-auto btn-icon btn-sm fs-15" type="button" data-type="minus" data-field="qty-{{ $key }}">
+                                                        <button class="btn col-auto btn-icon btn-sm fs-15" type="button" data-type="minus" data-field="qty-{{ $key }}" @if($stock->product->digital == 1) disabled @endif>
                                                             <i class="las la-minus"></i>
                                                         </button>
                                                     </div>
@@ -263,14 +263,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        {{-- <div class="form-group">
                             <div class=" row">
                                 <label class="col-sm-2 control-label" for="postal_code">{{translate('Postal code')}}</label>
                                 <div class="col-sm-10">
                                     <input type="number" min="0" placeholder="{{translate('Postal code')}}" id="postal_code" name="postal_code" class="form-control" required>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="form-group">
                             <div class=" row">
                                 <label class="col-sm-2 control-label" for="phone">{{translate('Phone')}}</label>
@@ -439,16 +439,21 @@
 
         function setProductList(data){
             for (var i = 0; i < data.data.length; i++) {
+                
                 $('#product-list').append(
                     `<div class="w-140px w-xl-180px w-xxl-210px mx-2">
                         <div class="card bg-white c-pointer product-card hov-container">
                             <div class="position-relative">
-                                <span class="absolute-top-left mt-1 ml-1 mr-0">
-                                    ${data.data[i].qty > 0
-                                        ? `<span class="badge badge-inline badge-success fs-13">{{ translate('In stock') }}`
-                                        : `<span class="badge badge-inline badge-danger fs-13">{{ translate('Out of stock') }}` }
-                                    : ${data.data[i].qty}</span>
-                                </span>
+                                ${data.data[i].digital == 0 
+                                    ?
+                                        `<span class="absolute-top-left mt-1 ml-1 mr-0">
+                                            ${data.data[i].qty > 0
+                                                ? `<span class="badge badge-inline badge-success fs-13">{{ translate('In stock') }}`
+                                                : `<span class="badge badge-inline badge-danger fs-13">{{ translate('Out of stock') }}` }
+                                            : ${data.data[i].qty}</span>
+                                        </span>`
+                                    : ''
+                                }
                                 ${data.data[i].variant != null
                                     ? `<span class="badge badge-inline badge-warning absolute-bottom-left mb-1 ml-1 mr-0 fs-13 text-truncate">${data.data[i].variant}</span>`
                                     : '' }
@@ -463,7 +468,7 @@
                                     }
                                 </div>
                             </div>
-                            <div class="add-plus absolute-full rounded overflow-hidden hov-box ${data.data[i].qty <= 0 ? 'c-not-allowed' : '' }" data-stock-id="${data.data[i].stock_id}">
+                            <div class="add-plus absolute-full rounded overflow-hidden hov-box ${(data.data[i].digital == 0 && data.data[i].qty <= 0) ? 'c-not-allowed' : '' }" data-stock-id="${data.data[i].stock_id}">
                                 <div class="absolute-full bg-dark opacity-50">
                                 </div>
                                 <i class="las la-plus absolute-center la-6x text-white"></i>
