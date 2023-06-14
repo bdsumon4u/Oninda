@@ -1007,7 +1007,7 @@
                                 </li>
                             @endcan
                             @can('features_activation')
-                                <li class="aiz-side-nav-item">
+                                <li class="aiz-side-nav-item d-none">
                                     <a href="{{route('activation.index')}}" class="aiz-side-nav-link">
                                         <span class="aiz-side-nav-text">{{translate('Features activation')}}</span>
                                     </a>
@@ -1049,7 +1049,7 @@
                                 </li>
                             @endcan
                             @can('payment_methods_configurations')
-                                <li class="aiz-side-nav-item">
+                                <li class="aiz-side-nav-item d-none">
                                     <a href="{{ route('payment_method.index') }}" class="aiz-side-nav-link">
                                         <span class="aiz-side-nav-text">{{translate('Payment Methods')}}</span>
                                     </a>
@@ -1070,7 +1070,7 @@
                                 </li>
                             @endcan
                             @can('social_media_logins')
-                                <li class="aiz-side-nav-item">
+                                <li class="aiz-side-nav-item d-none">
                                     <a href="{{ route('social_login.index') }}" class="aiz-side-nav-link">
                                         <span class="aiz-side-nav-text">{{translate('Social media Logins')}}</span>
                                     </a>
@@ -1223,7 +1223,7 @@
 
                 {{-- System Update & Server Status --}}
                 @canany(['system_update','server_status'])
-                    <li class="aiz-side-nav-item">
+                    <li class="aiz-side-nav-item d-none">
                         <a href="#" class="aiz-side-nav-link">
                             <i class="las la-user-tie aiz-side-nav-icon"></i>
                             <span class="aiz-side-nav-text">{{translate('System')}}</span>
@@ -1250,7 +1250,7 @@
 
                 <!-- Addon Manager -->
                 @can('manage_addons')
-                    <li class="aiz-side-nav-item">
+                    <li class="aiz-side-nav-item d-none">
                         <a href="{{route('addons.index')}}" class="aiz-side-nav-link {{ areActiveRoutes(['addons.index', 'addons.create'])}}">
                             <i class="las la-wrench aiz-side-nav-icon"></i>
                             <span class="aiz-side-nav-text">{{translate('Addon Manager')}}</span>
