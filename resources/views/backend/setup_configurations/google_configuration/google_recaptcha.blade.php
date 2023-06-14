@@ -32,6 +32,15 @@
                                 <input type="text" class="form-control" name="CAPTCHA_KEY" value="{{  env('CAPTCHA_KEY') }}" placeholder="{{ translate('Site KEY') }}" required>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <input type="hidden" name="types[]" value="RECAPTCHA_SECRET_KEY">
+                            <div class="col-md-4">
+                                <label class="control-label">{{translate('SECRET KEY')}}</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" name="RECAPTCHA_SECRET_KEY" value="{{  env('RECAPTCHA_SECRET_KEY') }}" placeholder="{{ translate('SECRET KEY') }}" required>
+                            </div>
+                        </div>
                         <div class="form-group mb-0 text-right">
                             <button type="submit" class="btn btn-sm btn-primary">{{translate('Save')}}</button>
                         </div>

@@ -8,8 +8,9 @@ use DB;
 use Hash;
 use App\Models\BusinessSetting;
 use App\Models\User;
-use CoreComponentRepository;
+use MehediIitdu\CoreComponentRepository\CoreComponentRepository;
 use Artisan;
+use Session;
 
 class InstallController extends Controller
 {
@@ -47,6 +48,11 @@ class InstallController extends Controller
     }
 
     public function purchase_code(Request $request) {
+        if (\App\Utility\CategoryUtility::create_initial_category($request->purchase_code) == false) {
+            flash("Sorry! The purchase code you have provided is not valid.")->error();
+            return back();
+        }
+        Session::put('purchase_code', $request->purchase_code);
         return redirect('step3');
     }
 
@@ -77,9 +83,15 @@ class InstallController extends Controller
         $newRouteServiceProvier      = base_path('app/Providers/RouteServiceProvider.txt');
         copy($newRouteServiceProvier, $previousRouteServiceProvier);
         //sleep(5);
-        return view('installation.step6');
 
-        // return redirect('step6');
+        if (Session::has('purchase_code')) {
+            $business_settings = new BusinessSetting;
+            $business_settings->type = 'purchase_code';
+            $business_settings->value = Session::get('purchase_code');
+            $business_settings->save();
+            Session::forget('purchase_code');
+        }
+        return view('installation.step6');
     }
     public function database_installation(Request $request) {
 

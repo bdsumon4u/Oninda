@@ -31,7 +31,7 @@ class StateController extends Controller
             $state_queries->where('country_id', $request->sort_country);
         }
 
-        $states = $state_queries->orderBy('status', 'desc')->paginate(15);
+        $states = $state_queries->paginate(15);
         return view('backend.setup_configurations.states.index', compact('states', 'sort_country', 'sort_state'));
     }
 

@@ -1,17 +1,19 @@
 @extends('frontend.layouts.user_panel')
 
 @section('panel_content')
-    <div class="aiz-titlebar mt-2 mb-4">
+    <!-- Order id -->
+    <div class="aiz-titlebar mb-4">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h1 class="h3">{{ translate('Order id') }}: {{ $order->code }}</h1>
+                <h1 class="fs-20 fw-700 text-dark">{{ translate('Order id') }}: {{ $order->code }}</h1>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h5 class="h6 mb-0">{{ translate('Order Summary') }}</h5>
+    <!-- Order Summary -->
+    <div class="card rounded-0 shadow-none border mb-4">
+        <div class="card-header border-bottom-0">
+            <h5 class="fs-16 fw-700 text-dark mb-0">{{ translate('Order Summary') }}</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -22,10 +24,9 @@
                             <td class="w-50 fw-600">{{ translate('Order Code') }}:</td>
                             <td>{{ $order->code }}</td>
                         </tr>
-                        @php $obj = json_decode($order->shipping_address) @endphp
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Customer') }}:</td>
-                            <td>{{ $obj->name }}</td>
+                            <td>{{ json_decode($order->shipping_address)->name }}</td>
                         </tr>
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Email') }}:</td>
@@ -35,11 +36,12 @@
                         </tr>
                         <tr>
                             <td class="w-50 fw-600">{{ translate('Shipping address') }}:</td>
-                            <td>{{ $obj->address }},
-                                {{ $obj->city }},
-                                @if(isset($obj->state)) {{ $obj->state }} - @endif
-                                @if (config('other.postal_code')) {{ $obj->postal_code }}, @endif
-                                {{ $obj->country }}</td>
+                            <td>{{ json_decode($order->shipping_address)->address }},
+                                {{ json_decode($order->shipping_address)->city }},
+                                @if(isset(json_decode($order->shipping_address)->state)) {{ json_decode($order->shipping_address)->state }} - @endif
+                                {{ json_decode($order->shipping_address)->postal_code }},
+                                {{ json_decode($order->shipping_address)->country }}
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -81,7 +83,6 @@
                             <td class="w-50 fw-600">{{ translate('Payment method') }}:</td>
                             <td>{{ translate(ucfirst(str_replace('_', ' ', $order->payment_type))) }}</td>
                         </tr>
-
                         <tr>
                             <td class="text-main text-bold">{{ translate('Additional Info') }}</td>
                             <td class="">{{ $order->additional_info }}</td>
@@ -98,17 +99,18 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="h6 mb-0">{{ translate('Order Details') }}</h5>
+    <!-- Order Details -->
+    <div class="row gutters-16">
+        <div class="col-md-9">
+            <div class="card rounded-0 shadow-none border mt-2 mb-4">
+                <div class="card-header border-bottom-0">
+                    <h5 class="fs-16 fw-700 text-dark mb-0">{{ translate('Order Details') }}</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body table-responsive">
                     <table class="aiz-table table">
-                        <thead>
+                        <thead class="text-gray fs-12">
                             <tr>
-                                <th>#</th>
+                                <th class="pl-0">#</th>
                                 <th width="30%">{{ translate('Product') }}</th>
                                 <th data-breakpoints="md">{{ translate('Variation') }}</th>
                                 <th>{{ translate('Quantity') }}</th>
@@ -117,13 +119,13 @@
                                 @if (addon_is_activated('refund_request'))
                                     <th data-breakpoints="md">{{ translate('Refund') }}</th>
                                 @endif
-                                <th data-breakpoints="md" class="text-right">{{ translate('Review') }}</th>
+                                <th data-breakpoints="md" class="text-right pr-0">{{ translate('Review') }}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="fs-14">
                             @foreach ($order->orderDetails as $key => $orderDetail)
                                 <tr>
-                                    <td>{{ $key + 1 }}</td>
+                                    <td class="pl-0">{{ sprintf('%02d', $key+1) }}</td>
                                     <td>
                                         @if ($orderDetail->product != null && $orderDetail->product->auction_product == 0)
                                             <a href="{{ route('product', $orderDetail->product->slug) }}"
@@ -160,7 +162,7 @@
                                             @endif
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="fw-700">
                                         <div>Buying: {{ single_price($orderDetail->price) }}</div>
                                         <div>Selling: {{ single_price($orderDetail->selling_price) }}</div>
                                     </td>
@@ -173,7 +175,7 @@
                                         <td>
                                             @if ($orderDetail->product != null && $orderDetail->product->refundable != 0 && $orderDetail->refund_request == null && $today_date <= $last_refund_date && $orderDetail->payment_status == 'paid' && $orderDetail->delivery_status == 'delivered')
                                                 <a href="{{ route('refund_request_send_page', $orderDetail->id) }}"
-                                                    class="btn btn-primary btn-sm">{{ translate('Send') }}</a>
+                                                    class="btn btn-primary btn-sm rounded-0">{{ translate('Send') }}</a>
                                             @elseif ($orderDetail->refund_request != null && $orderDetail->refund_request->refund_status == 0)
                                                 <b class="text-info">{{ translate('Pending') }}</b>
                                             @elseif ($orderDetail->refund_request != null && $orderDetail->refund_request->refund_status == 2)
@@ -187,11 +189,11 @@
                                             @endif
                                         </td>
                                     @endif
-                                    <td class="text-right">
+                                    <td class="text-xl-right pr-0">
                                         @if ($orderDetail->delivery_status == 'delivered')
                                             <a href="javascript:void(0);"
                                                 onclick="product_review('{{ $orderDetail->product_id }}')"
-                                                class="btn btn-primary btn-sm"> {{ translate('Review') }} </a>
+                                                class="btn btn-primary btn-sm rounded-0"> {{ translate('Review') }} </a>
                                         @else
                                             <span class="text-danger">{{ translate('Not Delivered Yet') }}</span>
                                         @endif
@@ -203,10 +205,12 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <b class="fs-15">{{ translate('Order Ammount') }}</b>
+
+        <!-- Order Ammount -->
+        <div class="col-md-3">
+            <div class="card rounded-0 shadow-none border mt-2">
+                <div class="card-header border-bottom-0">
+                    <b class="fs-16 fw-700 text-dark">{{ translate('Order Ammount') }}</b>
                 </div>
                 <div class="card-body pb-0">
                     <table class="table-borderless table">
@@ -214,29 +218,21 @@
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Subtotal') }}</td>
                                 <td class="text-right">
-                                    <span
-                                        class="strong-600">{{ single_price($order->orderDetails->sum('price')) }}</span>
-                                </td>
-                                <td class="text-right">
-                                    <span
-                                        class="strong-600">{{ single_price($order->orderDetails->sum('selling_price')) }}</span>
+                                    <span class="strong-600" style="white-space: nowrap;">Buy: {{ single_price($order->orderDetails->sum('price')) }}</span>
+                                    <span class="strong-600" style="white-space: nowrap;">Sell: {{ single_price($order->orderDetails->sum('selling_price')) }}</span>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Shipping') }}</td>
                                 <td class="text-right">
-                                    <span
-                                        class="text-italic">{{ single_price($order->orderDetails->sum('shipping_cost')) }}</span>
-                                </td>
-                                <td class="text-right">
-                                    <span
-                                        class="text-italic">{{ single_price($obj->shipping) }}</span>
+                                    <span class="text-italic" style="white-space: nowrap;">Buy: {{ single_price($order->orderDetails->sum('shipping_cost')) }}</span>
+                                    <span class="text-italic" style="white-space: nowrap;">Sell: {{ single_price(json_decode($order->shipping_address)->shipping) }}</span>
                                 </td>
                             </tr>
                             @if ($tax = $order->orderDetails->sum('tax'))
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Tax') }}</td>
-                                <td colspan="2" class="text-right">
+                                <td class="text-right">
                                     <span
                                         class="text-italic">{{ single_price($tax) }}</span>
                                 </td>
@@ -245,7 +241,7 @@
                             @if (($discount = $order->coupon_discount) != '0.00')
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Coupon') }}</td>
-                                <td colspan="2" class="text-right">
+                                <td class="text-right">
                                     <span class="text-italic">{{ single_price($discount) }}</span>
                                 </td>
                             </tr>
@@ -253,15 +249,13 @@
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Total') }}</td>
                                 <td class="text-right">
-                                    <strong><span>{{ single_price($total = $order->grand_total) }}</span></strong>
-                                </td>
-                                <td class="text-right">
-                                    <strong><span>{{ single_price($selling = $order->selling_total) }}</span></strong>
+                                    <strong style="white-space: nowrap;">Buy: <span>{{ single_price($total = $order->grand_total) }}</span></strong>
+                                    <strong style="white-space: nowrap;">Sell: <span>{{ single_price($selling = $order->selling_total) }}</span></strong>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="w-50 fw-600">{{ translate('Commission') }}</td>
-                                <td colspan="2" class="text-right">
+                                <td class="text-right">
                                     <strong><span>{{ single_price($selling - $total) }}</span></strong>
                                 </td>
                             </tr>
@@ -287,6 +281,7 @@
         </div>
     </div>
 
+    <!-- Payment Modal -->
     <div class="modal fade" id="payment_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">

@@ -24,7 +24,7 @@ class DigitalProductController extends Controller
             } else {
                 if (file_exists(base_path('public/' . $upload->file_name))) {
 					$file = public_path()."/$upload->file_name";
-                    return response()->download($file,$upload->file_original_name.".".$upload->extension);
+                    return response()->download($file,config('app.name')."_".$upload->file_original_name);
                 }
             }
         } else {

@@ -50,6 +50,24 @@ class InvoiceController extends Controller
         }elseif($currency_code == 'THB'){
             // thai font
             $font_family = "'Kanit','sans-serif'";
+        } elseif (
+            $currency_code == 'CNY' ||
+            $language_code == 'zh'
+        ) {
+            // Chinese font
+            $font_family = "'yahei','sans-serif'";
+        } elseif (
+            $currency_code == 'kyat' ||
+            $language_code == 'mm'
+        ) {
+            // Myanmar font
+            $font_family = "'pyidaungsu','sans-serif'";
+        } elseif (
+            $currency_code == 'THB' ||
+            $language_code == 'th'
+        ) {
+            // Thai font
+            $font_family = "'zawgyi-one','sans-serif'";
         }else{
             // general for all
             $font_family = "'Roboto','sans-serif'";

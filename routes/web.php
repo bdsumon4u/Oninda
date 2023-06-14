@@ -1,51 +1,52 @@
 <?php
 
-use App\Http\Controllers\AddressController;
-use App\Http\Controllers\AizUploadController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\CompareController;
-use App\Http\Controllers\ConversationController;
-use App\Http\Controllers\CurrencyController;
-use App\Http\Controllers\CustomerPackageController;
-use App\Http\Controllers\CustomerProductController;
 use App\Http\Controllers\DemoController;
-use App\Http\Controllers\DigitalProductController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
-use App\Http\Controllers\PurchaseHistoryController;
+use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\SubscriberController;
-use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\WalletController;
-
-use App\Http\Controllers\Payment\AamarpayController;
-use App\Http\Controllers\Payment\AuthorizenetController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\CompareController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\AizUploadController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\SubscriberController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\FollowSellerController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProductQueryController;
 use App\Http\Controllers\Payment\BkashController;
-use App\Http\Controllers\Payment\InstamojoController;
-use App\Http\Controllers\Payment\MercadopagoController;
+use App\Http\Controllers\Payment\NagadController;
+
+use App\Http\Controllers\Payment\PaykuController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\DigitalProductController;
+use App\Http\Controllers\Payment\IyzicoController;
+use App\Http\Controllers\Payment\PaypalController;
+use App\Http\Controllers\Payment\StripeController;
+use App\Http\Controllers\CustomerPackageController;
+use App\Http\Controllers\CustomerProductController;
 use App\Http\Controllers\Payment\NgeniusController;
 use App\Http\Controllers\Payment\PayhereController;
-use App\Http\Controllers\Payment\PaypalController;
+use App\Http\Controllers\PurchaseHistoryController;
+use App\Http\Controllers\Payment\AamarpayController;
 use App\Http\Controllers\Payment\PaystackController;
-use App\Http\Controllers\Payment\SslcommerzController;
 use App\Http\Controllers\Payment\RazorpayController;
-use App\Http\Controllers\Payment\StripeController;
 use App\Http\Controllers\Payment\VoguepayController;
-use App\Http\Controllers\Payment\IyzicoController;
-use App\Http\Controllers\Payment\NagadController;
-use App\Http\Controllers\Payment\PaykuController;
-use App\Http\Controllers\ProductQueryController;
-use App\Http\Controllers\ShopController;
-use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\Payment\InstamojoController;
+use App\Http\Controllers\Payment\SslcommerzController;
+use App\Http\Controllers\Payment\MercadopagoController;
+use App\Http\Controllers\Payment\AuthorizenetController;
 
 /*
   |--------------------------------------------------------------------------
@@ -58,18 +59,18 @@ use App\Http\Controllers\WishlistController;
   |
  */
 
-// Route::controller(DemoController::class)->group(function () {
-//     Route::get('/demo/cron_1', 'cron_1');
-//     Route::get('/demo/cron_2', 'cron_2');
-//     Route::get('/convert_assets', 'convert_assets');
-//     Route::get('/convert_category', 'convert_category');
-//     Route::get('/convert_tax', 'convertTaxes');
-//     Route::get('/insert_product_variant_forcefully', 'insert_product_variant_forcefully');
-//     Route::get('/update_seller_id_in_orders/{id_min}/{id_max}', 'update_seller_id_in_orders');
-//     Route::get('/migrate_attribute_values', 'migrate_attribute_values');
-// });
+Route::controller(DemoController::class)->group(function () {
+    Route::get('/demo/cron_1', 'cron_1');
+    Route::get('/demo/cron_2', 'cron_2');
+    Route::get('/convert_assets', 'convert_assets');
+    Route::get('/convert_category', 'convert_category');
+    Route::get('/convert_tax', 'convertTaxes');
+    Route::get('/insert_product_variant_forcefully', 'insert_product_variant_forcefully');
+    Route::get('/update_seller_id_in_orders/{id_min}/{id_max}', 'update_seller_id_in_orders');
+    Route::get('/migrate_attribute_values', 'migrate_attribute_values');
+});
 
-Route::get('/refresh-csrf', function() {
+Route::get('/refresh-csrf', function () {
     return csrf_token();
 });
 
@@ -82,7 +83,9 @@ Route::controller(AizUploadController::class)->group(function () {
     Route::get('/aiz-uploader/download/{id}', 'attachment_download')->name('download_attachment');
 });
 
-Auth::routes(['verify' => true]);
+Route::group(['middleware' => 'prevent-back-history'], function () {
+    Auth::routes(['verify' => true]);
+});
 
 // Login
 Route::controller(LoginController::class)->group(function () {
@@ -102,7 +105,10 @@ Route::controller(VerificationController::class)->group(function () {
 Route::controller(HomeController::class)->group(function () {
     Route::get('/email_change/callback', 'email_change_callback')->name('email_change.callback');
     Route::post('/password/reset/email/submit', 'reset_password_with_code')->name('password.update');
+
     Route::get('/users/login', 'login')->name('user.login');
+    Route::get('/seller/login', 'login')->name('seller.login');
+    Route::get('/deliveryboy/login', 'login')->name('deliveryboy.login');
     Route::get('/users/registration', 'registration')->name('user.registration');
     Route::post('/users/login/cart', 'cart_login')->name('cart.login.submit');
     // Route::get('/new-page', 'new_page')->name('new_page');
@@ -122,6 +128,9 @@ Route::controller(HomeController::class)->group(function () {
     //Flash Deal Details Page
     Route::get('/flash-deals', 'all_flash_deals')->name('flash-deals');
     Route::get('/flash-deal/{slug}', 'flash_deal_details')->name('flash-deal-details');
+
+    //Todays Deal Details Page
+    Route::get('/todays-deal', 'todays_deal')->name('todays-deal');
 
     Route::get('/product/{slug}', 'product')->name('product');
     Route::post('/product/variant_price', 'variant_price')->name('products.variant_price');
@@ -154,7 +163,7 @@ Route::post('/language', [LanguageController::class, 'changeLanguage'])->name('l
 Route::post('/currency', [CurrencyController::class, 'changeCurrency'])->name('currency.change');
 
 
-Route::get('/sitemap.xml', function() {
+Route::get('/sitemap.xml', function () {
     return base_path('sitemap.xml');
 });
 
@@ -222,29 +231,29 @@ Route::controller(CompareController::class)->group(function () {
     Route::get('/compare', 'index')->name('compare');
     Route::get('/compare/reset', 'reset')->name('compare.reset');
     Route::post('/compare/addToCompare', 'addToCompare')->name('compare.addToCompare');
+    Route::get('/compare/details/{id}', 'details')->name('compare.details');
 });
 
 // Subscribe
 Route::resource('subscribers', SubscriberController::class);
 
-Route::group(['middleware' => ['user', 'verified', 'unbanned']], function() {
+Route::group(['middleware' => ['user', 'verified', 'unbanned']], function () {
 
     Route::controller(HomeController::class)->group(function () {
-        Route::get('/dashboard', 'dashboard')->name('dashboard');
+        Route::get('/dashboard', 'dashboard')->name('dashboard')->middleware(['prevent-back-history']);
         Route::get('/profile', 'profile')->name('profile');
         Route::post('/new-user-verification', 'new_verify')->name('user.new.verify');
         Route::post('/new-user-email', 'update_email')->name('user.change.email');
         Route::post('/user/update-profile', 'userProfileUpdate')->name('user.profile.update');
     });
-    
-    Route::get('/all-notifications', [NotificationController::class, 'index'])->name('all-notifications');
 
+    Route::get('/all-notifications', [NotificationController::class, 'index'])->name('all-notifications');
 });
 
-Route::group(['middleware' => ['customer', 'verified', 'unbanned']], function() {
+Route::group(['middleware' => ['customer', 'verified', 'unbanned']], function () {
 
     // Checkout Routs
-    Route::group(['prefix' => 'checkout'], function() {
+    Route::group(['prefix' => 'checkout'], function () {
         Route::controller(CheckoutController::class)->group(function () {
             Route::get('/', 'get_shipping_info')->name('checkout.shipping_info');
             Route::any('/delivery_info', 'store_shipping_info')->name('checkout.store_shipping_infostore');
@@ -257,7 +266,7 @@ Route::group(['middleware' => ['customer', 'verified', 'unbanned']], function() 
             Route::post('/remove_coupon_code', 'remove_coupon_code')->name('checkout.remove_coupon_code');
             //Club point
             Route::post('/apply-club-point', 'apply_club_point')->name('checkout.apply_club_point');
-            Route::post('/remove-club-point', 'remove_club_point')->name('checkout.remove_club_point'); 
+            Route::post('/remove-club-point', 'remove_club_point')->name('checkout.remove_club_point');
         });
     });
 
@@ -274,6 +283,13 @@ Route::group(['middleware' => ['customer', 'verified', 'unbanned']], function() 
     Route::resource('wishlists', WishlistController::class);
     Route::post('/wishlists/remove', [WishlistController::class, 'remove'])->name('wishlists.remove');
 
+    //Follow
+    Route::controller(FollowSellerController::class)->group(function () {
+        Route::get('/followed-seller', 'index')->name('followed_seller');
+        Route::get('/followed-seller/store', 'store')->name('followed_seller.store');
+        Route::get('/followed-seller/remove', 'remove')->name('followed_seller.remove');
+    });
+
     // Wallet
     Route::controller(WalletController::class)->group(function () {
         Route::get('/wallet', 'index')->name('wallet.index');
@@ -285,7 +301,7 @@ Route::group(['middleware' => ['customer', 'verified', 'unbanned']], function() 
     Route::post('support_ticket/reply', [SupportTicketController::class, 'seller_store'])->name('support_ticket.seller_store');
 
     // Customer Package
-    Route::post('/customer_packages/purchase',[CustomerPackageController::class, 'purchase_package'])->name('customer_packages.purchase');
+    Route::post('/customer_packages/purchase', [CustomerPackageController::class, 'purchase_package'])->name('customer_packages.purchase');
 
     // Customer Product
     Route::resource('customer_products', CustomerProductController::class);
@@ -300,20 +316,24 @@ Route::group(['middleware' => ['customer', 'verified', 'unbanned']], function() 
     Route::post('/product_review_modal', [ReviewController::class, 'product_review_modal'])->name('product_review_modal');
 });
 
-Route::group(['middleware' => ['auth']], function() {
-    
+
+Route::get('translation-check/{check}', [LanguageController::class, 'get_translation']);
+
+
+Route::group(['middleware' => ['auth']], function () {
+
     Route::get('invoice/{order_id}', [InvoiceController::class, 'invoice_download'])->name('invoice.download');
 
     // Reviews
     Route::resource('/reviews', ReviewController::class);
-    
+
     // Product Conversation
     Route::resource('conversations', ConversationController::class);
     Route::controller(ConversationController::class)->group(function () {
         Route::get('/conversations/destroy/{id}', 'destroy')->name('conversations.destroy');
         Route::post('conversations/refresh', 'refresh')->name('conversations.refresh');
     });
-    
+
     // Product Query
     Route::resource('product-queries', ProductQueryController::class);
 
@@ -384,10 +404,9 @@ Route::controller(NgeniusController::class)->group(function () {
     Route::any('ngenius/seller_package_payment_callback', 'seller_package_payment_callback')->name('ngenius.seller_package_payment_callback');
 });
 
-//bKash
 Route::controller(BkashController::class)->group(function () {
-    Route::post('/bkash/createpayment', 'checkout')->name('bkash.checkout');
-    Route::post('/bkash/executepayment', 'excecute')->name('bkash.excecute');
+    Route::get('/bkash/create-payment', 'create_payment')->name('bkash.create_payment');
+    Route::get('/bkash/callback', 'callback')->name('bkash.callback');
     Route::get('/bkash/success', 'success')->name('bkash.success');
 });
 
@@ -398,12 +417,13 @@ Route::get('/nagad/callback', [NagadController::class, 'verify'])->name('nagad.c
 
 //aamarpay
 Route::controller(AamarpayController::class)->group(function () {
-    Route::post('/aamarpay/success','success')->name('aamarpay.success');
-    Route::post('/aamarpay/fail','fail')->name('aamarpay.fail');
+    Route::post('/aamarpay/success', 'success')->name('aamarpay.success');
+    Route::post('/aamarpay/fail', 'fail')->name('aamarpay.fail');
 });
 
 //Authorize-Net-Payment
 Route::post('/dopay/online', [AuthorizenetController::class, 'handleonlinepay'])->name('dopay.online');
+Route::get('/authorizenet/cardtype', [AuthorizenetController::class, 'cardType'])->name('authorizenet.cardtype');
 
 //payku
 Route::get('/payku/callback/{id}', [PaykuController::class, 'callback'])->name('payku.result');
@@ -421,5 +441,3 @@ Route::controller(PageController::class)->group(function () {
     //Custom page
     Route::get('/{slug}', 'show_custom_page')->name('custom-pages.show_custom_page');
 });
-
-

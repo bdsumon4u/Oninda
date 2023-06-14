@@ -21,6 +21,8 @@ class OrderController extends Controller
 {
     public function store(Request $request, $set_paid = false)
     {
+
+
         if(get_setting('minimum_order_amount_check') == 1){
             $subtotal = 0;
             foreach (Cart::where('user_id', auth()->user()->id)->get() as $key => $cartItem){ 
@@ -31,7 +33,8 @@ class OrderController extends Controller
                 return $this->failed("You order amount is less then the minimum order amount");
             }
         }
-        
+
+
         $cartItems = Cart::where('user_id', auth()->user()->id)->get();
 
         if ($cartItems->isEmpty()) {

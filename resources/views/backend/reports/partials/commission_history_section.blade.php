@@ -60,6 +60,6 @@
         </tbody>
     </table>
     <div class="aiz-pagination mt-4">
-        {{ $commission_history->links() }}
+        {{ $commission_history->appends(request()->input())->links() }}
     </div>
 </div>

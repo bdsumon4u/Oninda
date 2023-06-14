@@ -110,7 +110,7 @@
 				@endphp
 				<tr><td class="strong small gry-color">{{ translate('Bill to') }}:</td></tr>
 				<tr><td class="strong">{{ $shipping_address->name }}</td></tr>
-				<tr><td class="gry-color small">{{ $shipping_address->address }}, {{ $shipping_address->city }},  @if(isset($shipping_address->state)) {{ $shipping_address->state }} - @endif  @if(isset($shipping_address->postal_code)) {{ $shipping_address->postal_code }}, @endif {{ $shipping_address->country }}</td></tr>
+				<tr><td class="gry-color small">{{ $shipping_address->address }}, {{ $shipping_address->city }},  @if(isset(json_decode($order->shipping_address)->state)) {{ json_decode($order->shipping_address)->state }} - @endif {{ $shipping_address->postal_code }}, {{ $shipping_address->country }}</td></tr>
 				<tr><td class="gry-color small">{{ translate('Email') }}: {{ $shipping_address->email }}</td></tr>
 				<tr><td class="gry-color small">{{ translate('Phone') }}: {{ $shipping_address->phone }}</td></tr>
 			</table>
@@ -137,15 +137,13 @@
 								<td>
                                     {{ $orderDetail->product->name }} 
                                     @if($orderDetail->variation != null) ({{ $orderDetail->variation }}) @endif
-                                    @if (config('other.invoice_sku'))
-									<br>
+                                    <br>
                                     <small>
                                         @php
                                             $product_stock = json_decode($orderDetail->product->stocks->first(), true);
                                         @endphp
                                         {{translate('SKU')}}: {{ $product_stock['sku'] }}
                                     </small>
-									@endif
                                 </td>
 								<td>
 									@if ($order->shipping_type != null && $order->shipping_type == 'home_delivery')
@@ -170,8 +168,8 @@
 								<td class="currency">{{ single_price($orderDetail->selling_price/$orderDetail->quantity) }}</td>
 								@if($hasTax)
 								<td class="currency">{{ single_price($orderDetail->tax/$orderDetail->quantity) }}</td>
-			                    @endif
-								<td class="text-right currency">{{ single_price($orderDetail->selling_price) }}</td>
+								@endif
+			                    <td class="text-right currency">{{ single_price($orderDetail->selling_price) }}</td>
 							</tr>
 		                @endif
 					@endforeach

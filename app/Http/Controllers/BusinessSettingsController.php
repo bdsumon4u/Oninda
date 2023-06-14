@@ -535,6 +535,7 @@ class BusinessSettingsController extends Controller
         $business_settings->save();
 
         Artisan::call('cache:clear');
+        flash(translate('Shipping Method updated successfully'))->success();
         return back();
     }
 

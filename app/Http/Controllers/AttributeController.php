@@ -36,7 +36,7 @@ class AttributeController extends Controller
     {
         CoreComponentRepository::instantiateShopRepository();
         CoreComponentRepository::initializeCache();
-        $attributes = Attribute::orderBy('created_at', 'desc')->get();
+        $attributes = Attribute::with('attribute_values')->orderBy('created_at', 'desc')->paginate(15);
         return view('backend.product.attribute.index', compact('attributes'));
     }
 

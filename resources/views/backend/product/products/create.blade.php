@@ -233,7 +233,6 @@
                                 <input type="text" placeholder="{{ translate('Suggested retail price') }}" name="retail_price" class="form-control">
                             </div>
                         </div>
-
                         <div class="form-group row">
 	                        <label class="col-sm-3 control-label" for="start_date">{{translate('Discount Date Range')}}</label>
 	                        <div class="col-sm-9">

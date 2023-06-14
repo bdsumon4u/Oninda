@@ -2,23 +2,27 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
-use App\Models\Customer;
-use App\Models\Cart;
-use App\Models\BusinessSetting;
-use App\OtpConfiguration;
-use App\Http\Controllers\Controller;
-use App\Http\Controllers\OTPVerificationController;
-use App\Notifications\EmailVerificationNotification;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Foundation\Auth\RegistersUsers;
+use Nexmo;
 use Cookie;
 use Session;
-use Nexmo;
+use App\Models\Cart;
+use App\Models\User;
 use Twilio\Rest\Client;
+
+use App\Rules\Recaptcha;
+use Illuminate\Validation\Rule;
+
+use App\Models\Customer;
+use App\OtpConfiguration;
+use Illuminate\Http\Request;
+use App\Models\BusinessSetting;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Foundation\Auth\RegistersUsers;
+use App\Http\Controllers\OTPVerificationController;
+use App\Notifications\EmailVerificationNotification;
 
 class RegisterController extends Controller
 {
@@ -63,6 +67,9 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'name' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
+            'g-recaptcha-response' => [
+                Rule::when(get_setting('google_recaptcha') == 1, ['required', new Recaptcha()], ['sometimes'])
+            ]
         ]);
     }
 

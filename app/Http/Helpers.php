@@ -30,6 +30,7 @@ use App\Http\Resources\V2\CarrierCollection;
 use App\Http\Controllers\AffiliateController;
 use App\Http\Controllers\ClubPointController;
 use App\Http\Controllers\CommissionController;
+use AizPackages\ColorCodeConverter\Services\ColorCodeConverter;
 
 //sensSMS function for OTP
 if (!function_exists('sendSMS')) {
@@ -91,18 +92,21 @@ if (!function_exists('convert_to_kes')) {
 if (!function_exists('filter_products')) {
     function filter_products($products)
     {
+
+        $products = $products->where('published', '1')->where('auction_product', 0)->where('approved', '1');
+
+        if (!addon_is_activated('wholesale')) {
+            $products = $products->where('wholesale_product', 0);
+        }
         $verified_sellers = verified_sellers_id();
         if (get_setting('vendor_system_activation') == 1) {
-            return $products->where('approved', '1')
-                ->where('published', '1')
-                ->where('auction_product', 0)
-                ->where(function ($p) use ($verified_sellers) {
-                    $p->where('added_by', 'admin')->orWhere(function ($q) use ($verified_sellers) {
-                        $q->whereIn('user_id', $verified_sellers);
+            return $products->where(function ($p) use ($verified_sellers) {
+                        $p->where('added_by', 'admin')->orWhere(function ($q) use ($verified_sellers) {
+                            $q->whereIn('user_id', $verified_sellers);
+                        });
                     });
-                });
         } else {
-            return $products->where('published', '1')->where('auction_product', 0)->where('added_by', 'admin');
+            return $products->where('added_by', 'admin');
         }
     }
 }
@@ -111,29 +115,11 @@ if (!function_exists('filter_products')) {
 if (!function_exists('get_cached_products')) {
     function get_cached_products($category_id = null)
     {
-        $products = \App\Models\Product::where('published', 1)->where('approved', '1')->where('auction_product', 0);
-        $verified_sellers = verified_sellers_id();
-        if (get_setting('vendor_system_activation') == 1) {
-            $products = $products->where(function ($p) use ($verified_sellers) {
-                $p->where('added_by', 'admin')->orWhere(function ($q) use ($verified_sellers) {
-                    $q->whereIn('user_id', $verified_sellers);
-                });
-            });
-        } else {
-            $products = $products->where('added_by', 'admin');
-        }
-
-        if ($category_id != null) {
-            return Cache::remember('products-category-' . $category_id, 86400, function () use ($category_id, $products) {
-                $category_ids = CategoryUtility::children_ids($category_id);
-                $category_ids[] = $category_id;
-                return $products->whereIn('category_id', $category_ids)->latest()->take(12)->get();
-            });
-        } else {
-            return Cache::remember('products', 86400, function () use ($products) {
-                return $products->latest()->take(12)->get();
-            });
-        }
+        return Cache::remember('products-category-' . $category_id, 86400, function () use ($category_id) {
+            $category_ids = CategoryUtility::children_ids($category_id);
+            $category_ids[] = $category_id;
+            return filter_products(Product::whereIn('category_id', $category_ids))->latest()->take(5)->get();
+        });
     }
 }
 
@@ -163,6 +149,14 @@ if (!function_exists('convert_price')) {
             $price = floatval($price) / floatval(get_system_default_currency()->exchange_rate);
             $price = floatval($price) * floatval(Session::get('currency_exchange_rate'));
         }
+
+        if (
+            request()->header('Currency-Code') &&
+            request()->header('Currency-Code') != get_system_default_currency()->code
+        ) {
+            $price = floatval($price) / floatval(get_system_default_currency()->exchange_rate);
+            $price = floatval($price) * floatval(request()->header('Currency-Exchange-Rate'));
+        }
         return $price;
     }
 }
@@ -173,6 +167,9 @@ if (!function_exists('currency_symbol')) {
     {
         if (Session::has('currency_symbol')) {
             return Session::get('currency_symbol');
+        }
+        if (request()->header('Currency-Code')) {
+            return request()->header('Currency-Code');
         }
         return get_system_default_currency()->symbol;
     }
@@ -249,6 +246,12 @@ if (!function_exists('cart_product_price')) {
                 $price = $product_stock->price;
             }
 
+            if ($product->wholesale_product) {
+                $wholesalePrice = $product_stock->wholesalePrices->where('min_qty', '<=', $cart_product['quantity'])->where('max_qty', '>=', $cart_product['quantity'])->first();
+                if ($wholesalePrice) {
+                    $price = $wholesalePrice->price;
+                }
+            }
 
             //discount calculation
             $discount_applicable = false;
@@ -625,6 +628,8 @@ if (!function_exists('home_base_price_by_stock_id')) {
         return format_price(convert_price($price));
     }
 }
+
+
 if (!function_exists('home_base_price')) {
     function home_base_price($product, $formatted = true)
     {
@@ -639,7 +644,7 @@ if (!function_exists('home_base_price')) {
             }
         }
         $price += $tax;
-        return $formatted ? format_price(convert_price($price)) : $price;
+        return $formatted ? format_price(convert_price($price)) : convert_price($price);
     }
 }
 
@@ -684,6 +689,7 @@ if (!function_exists('home_discounted_base_price_by_stock_id')) {
     }
 }
 
+
 //Shows Base Price with discount
 if (!function_exists('home_discounted_base_price')) {
     function home_discounted_base_price($product, $formatted = true)
@@ -719,7 +725,8 @@ if (!function_exists('home_discounted_base_price')) {
         }
         $price += $tax;
 
-        return $formatted ? format_price(convert_price($price)) : $price;
+
+        return $formatted ? format_price(convert_price($price)) : convert_price($price);
     }
 }
 
@@ -790,6 +797,33 @@ function remove_invalid_charcaters($str)
 {
     $str = str_ireplace(array("\\"), '', $str);
     return str_ireplace(array('"'), '\"', $str);
+}
+
+if (!function_exists('translation_tables')) {
+    function translation_tables($uniqueIdentifier)
+    {
+        $noTableAddons =  ['african_pg', 'paytm', 'pos_system'];
+        if (!in_array($uniqueIdentifier, $noTableAddons)) {
+            $addons = [];
+            $addons['affiliate'] = ['affiliate_options', 'affiliate_configs', 'affiliate_users', 'affiliate_payments', 'affiliate_withdraw_requests', 'affiliate_logs', 'affiliate_stats'];
+            $addons['auction'] = ['auction_product_bids'];
+            $addons['club_point'] = ['club_points', 'club_point_details'];
+            $addons['delivery_boy'] = ['delivery_boys', 'delivery_histories', 'delivery_boy_payments', 'delivery_boy_collections'];
+            $addons['offline_payment'] = ['manual_payment_methods'];
+            $addons['otp_system'] = ['otp_configurations', 'sms_templates'];
+            $addons['refund_request'] = ['refund_requests'];
+            $addons['seller_subscription'] = ['seller_packages', 'seller_package_translations', 'seller_package_payments'];
+            $addons['wholesale'] = ['wholesale_prices'];
+
+            foreach ($addons as $key => $addon_tables) {
+                if ($key == $uniqueIdentifier) {
+                    foreach ($addon_tables as $table) {
+                        Schema::dropIfExists($table);
+                    }
+                }
+            }
+        }
+    }
 }
 
 function getShippingCost($carts, $index, $carrier = '')
@@ -933,7 +967,151 @@ if (!function_exists('seller_base_carrier_list')) {
 
 function timezones()
 {
-    return Timezones::timezonesToArray();
+    return array(
+        '(GMT-12:00) International Date Line West' => 'Pacific/Kwajalein',
+        '(GMT-11:00) Midway Island' => 'Pacific/Midway',
+        '(GMT-11:00) Samoa' => 'Pacific/Apia',
+        '(GMT-10:00) Hawaii' => 'Pacific/Honolulu',
+        '(GMT-09:00) Alaska' => 'America/Anchorage',
+        '(GMT-08:00) Pacific Time (US & Canada)' => 'America/Los_Angeles',
+        '(GMT-08:00) Tijuana' => 'America/Tijuana',
+        '(GMT-07:00) Arizona' => 'America/Phoenix',
+        '(GMT-07:00) Mountain Time (US & Canada)' => 'America/Denver',
+        '(GMT-07:00) Chihuahua' => 'America/Chihuahua',
+        '(GMT-07:00) La Paz' => 'America/Chihuahua',
+        '(GMT-07:00) Mazatlan' => 'America/Mazatlan',
+        '(GMT-06:00) Central Time (US & Canada)' => 'America/Chicago',
+        '(GMT-06:00) Central America' => 'America/Managua',
+        '(GMT-06:00) Guadalajara' => 'America/Mexico_City',
+        '(GMT-06:00) Mexico City' => 'America/Mexico_City',
+        '(GMT-06:00) Monterrey' => 'America/Monterrey',
+        '(GMT-06:00) Saskatchewan' => 'America/Regina',
+        '(GMT-05:00) Eastern Time (US & Canada)' => 'America/New_York',
+        '(GMT-05:00) Indiana (East)' => 'America/Indiana/Indianapolis',
+        '(GMT-05:00) Bogota' => 'America/Bogota',
+        '(GMT-05:00) Lima' => 'America/Lima',
+        '(GMT-05:00) Quito' => 'America/Bogota',
+        '(GMT-04:00) Atlantic Time (Canada)' => 'America/Halifax',
+        '(GMT-04:00) Caracas' => 'America/Caracas',
+        '(GMT-04:00) La Paz' => 'America/La_Paz',
+        '(GMT-04:00) Santiago' => 'America/Santiago',
+        '(GMT-03:30) Newfoundland' => 'America/St_Johns',
+        '(GMT-03:00) Brasilia' => 'America/Sao_Paulo',
+        '(GMT-03:00) Buenos Aires' => 'America/Argentina/Buenos_Aires',
+        '(GMT-03:00) Georgetown' => 'America/Argentina/Buenos_Aires',
+        '(GMT-03:00) Greenland' => 'America/Godthab',
+        '(GMT-02:00) Mid-Atlantic' => 'America/Noronha',
+        '(GMT-01:00) Azores' => 'Atlantic/Azores',
+        '(GMT-01:00) Cape Verde Is.' => 'Atlantic/Cape_Verde',
+        '(GMT) Casablanca' => 'Africa/Casablanca',
+        '(GMT) Dublin' => 'Europe/London',
+        '(GMT) Edinburgh' => 'Europe/London',
+        '(GMT) Lisbon' => 'Europe/Lisbon',
+        '(GMT) London' => 'Europe/London',
+        '(GMT) UTC' => 'UTC',
+        '(GMT) Monrovia' => 'Africa/Monrovia',
+        '(GMT+01:00) Amsterdam' => 'Europe/Amsterdam',
+        '(GMT+01:00) Belgrade' => 'Europe/Belgrade',
+        '(GMT+01:00) Berlin' => 'Europe/Berlin',
+        '(GMT+01:00) Bern' => 'Europe/Berlin',
+        '(GMT+01:00) Bratislava' => 'Europe/Bratislava',
+        '(GMT+01:00) Brussels' => 'Europe/Brussels',
+        '(GMT+01:00) Budapest' => 'Europe/Budapest',
+        '(GMT+01:00) Copenhagen' => 'Europe/Copenhagen',
+        '(GMT+01:00) Ljubljana' => 'Europe/Ljubljana',
+        '(GMT+01:00) Madrid' => 'Europe/Madrid',
+        '(GMT+01:00) Paris' => 'Europe/Paris',
+        '(GMT+01:00) Prague' => 'Europe/Prague',
+        '(GMT+01:00) Rome' => 'Europe/Rome',
+        '(GMT+01:00) Sarajevo' => 'Europe/Sarajevo',
+        '(GMT+01:00) Skopje' => 'Europe/Skopje',
+        '(GMT+01:00) Stockholm' => 'Europe/Stockholm',
+        '(GMT+01:00) Vienna' => 'Europe/Vienna',
+        '(GMT+01:00) Warsaw' => 'Europe/Warsaw',
+        '(GMT+01:00) West Central Africa' => 'Africa/Lagos',
+        '(GMT+01:00) Zagreb' => 'Europe/Zagreb',
+        '(GMT+02:00) Athens' => 'Europe/Athens',
+        '(GMT+02:00) Bucharest' => 'Europe/Bucharest',
+        '(GMT+02:00) Cairo' => 'Africa/Cairo',
+        '(GMT+02:00) Harare' => 'Africa/Harare',
+        '(GMT+02:00) Helsinki' => 'Europe/Helsinki',
+        '(GMT+02:00) Istanbul' => 'Europe/Istanbul',
+        '(GMT+02:00) Jerusalem' => 'Asia/Jerusalem',
+        '(GMT+02:00) Kyev' => 'Europe/Kiev',
+        '(GMT+02:00) Minsk' => 'Europe/Minsk',
+        '(GMT+02:00) Pretoria' => 'Africa/Johannesburg',
+        '(GMT+02:00) Riga' => 'Europe/Riga',
+        '(GMT+02:00) Sofia' => 'Europe/Sofia',
+        '(GMT+02:00) Tallinn' => 'Europe/Tallinn',
+        '(GMT+02:00) Vilnius' => 'Europe/Vilnius',
+        '(GMT+03:00) Baghdad' => 'Asia/Baghdad',
+        '(GMT+03:00) Kuwait' => 'Asia/Kuwait',
+        '(GMT+03:00) Moscow' => 'Europe/Moscow',
+        '(GMT+03:00) Nairobi' => 'Africa/Nairobi',
+        '(GMT+03:00) Riyadh' => 'Asia/Riyadh',
+        '(GMT+03:00) St. Petersburg' => 'Europe/Moscow',
+        '(GMT+03:00) Volgograd' => 'Europe/Volgograd',
+        '(GMT+03:30) Tehran' => 'Asia/Tehran',
+        '(GMT+04:00) Abu Dhabi' => 'Asia/Muscat',
+        '(GMT+04:00) Baku' => 'Asia/Baku',
+        '(GMT+04:00) Muscat' => 'Asia/Muscat',
+        '(GMT+04:00) Tbilisi' => 'Asia/Tbilisi',
+        '(GMT+04:00) Yerevan' => 'Asia/Yerevan',
+        '(GMT+04:30) Kabul' => 'Asia/Kabul',
+        '(GMT+05:00) Ekaterinburg' => 'Asia/Yekaterinburg',
+        '(GMT+05:00) Islamabad' => 'Asia/Karachi',
+        '(GMT+05:00) Karachi' => 'Asia/Karachi',
+        '(GMT+05:00) Tashkent' => 'Asia/Tashkent',
+        '(GMT+05:30) Chennai' => 'Asia/Kolkata',
+        '(GMT+05:30) Kolkata' => 'Asia/Kolkata',
+        '(GMT+05:30) Mumbai' => 'Asia/Kolkata',
+        '(GMT+05:30) New Delhi' => 'Asia/Kolkata',
+        '(GMT+05:45) Kathmandu' => 'Asia/Kathmandu',
+        '(GMT+06:00) Almaty' => 'Asia/Almaty',
+        '(GMT+06:00) Astana' => 'Asia/Dhaka',
+        '(GMT+06:00) Dhaka' => 'Asia/Dhaka',
+        '(GMT+06:00) Novosibirsk' => 'Asia/Novosibirsk',
+        '(GMT+06:00) Sri Jayawardenepura' => 'Asia/Colombo',
+        '(GMT+06:30) Rangoon' => 'Asia/Rangoon',
+        '(GMT+07:00) Bangkok' => 'Asia/Bangkok',
+        '(GMT+07:00) Hanoi' => 'Asia/Bangkok',
+        '(GMT+07:00) Jakarta' => 'Asia/Jakarta',
+        '(GMT+07:00) Krasnoyarsk' => 'Asia/Krasnoyarsk',
+        '(GMT+08:00) Beijing' => 'Asia/Hong_Kong',
+        '(GMT+08:00) Chongqing' => 'Asia/Chongqing',
+        '(GMT+08:00) Hong Kong' => 'Asia/Hong_Kong',
+        '(GMT+08:00) Irkutsk' => 'Asia/Irkutsk',
+        '(GMT+08:00) Kuala Lumpur' => 'Asia/Kuala_Lumpur',
+        '(GMT+08:00) Perth' => 'Australia/Perth',
+        '(GMT+08:00) Singapore' => 'Asia/Singapore',
+        '(GMT+08:00) Taipei' => 'Asia/Taipei',
+        '(GMT+08:00) Ulaan Bataar' => 'Asia/Irkutsk',
+        '(GMT+08:00) Urumqi' => 'Asia/Urumqi',
+        '(GMT+09:00) Osaka' => 'Asia/Tokyo',
+        '(GMT+09:00) Sapporo' => 'Asia/Tokyo',
+        '(GMT+09:00) Seoul' => 'Asia/Seoul',
+        '(GMT+09:00) Tokyo' => 'Asia/Tokyo',
+        '(GMT+09:00) Yakutsk' => 'Asia/Yakutsk',
+        '(GMT+09:30) Adelaide' => 'Australia/Adelaide',
+        '(GMT+09:30) Darwin' => 'Australia/Darwin',
+        '(GMT+10:00) Brisbane' => 'Australia/Brisbane',
+        '(GMT+10:00) Canberra' => 'Australia/Sydney',
+        '(GMT+10:00) Guam' => 'Pacific/Guam',
+        '(GMT+10:00) Hobart' => 'Australia/Hobart',
+        '(GMT+10:00) Melbourne' => 'Australia/Melbourne',
+        '(GMT+10:00) Port Moresby' => 'Pacific/Port_Moresby',
+        '(GMT+10:00) Sydney' => 'Australia/Sydney',
+        '(GMT+10:00) Vladivostok' => 'Asia/Vladivostok',
+        '(GMT+11:00) Magadan' => 'Asia/Magadan',
+        '(GMT+11:00) New Caledonia' => 'Asia/Magadan',
+        '(GMT+11:00) Solomon Is.' => 'Asia/Magadan',
+        '(GMT+12:00) Auckland' => 'Pacific/Auckland',
+        '(GMT+12:00) Fiji' => 'Pacific/Fiji',
+        '(GMT+12:00) Kamchatka' => 'Asia/Kamchatka',
+        '(GMT+12:00) Marshall Is.' => 'Pacific/Fiji',
+        '(GMT+12:00) Wellington' => 'Pacific/Auckland',
+        '(GMT+13:00) Nuku\'alofa' => 'Pacific/Tongatapu'
+    );
 }
 
 if (!function_exists('app_timezone')) {
@@ -1056,7 +1234,7 @@ if (!function_exists('get_setting')) {
 
 function hex2rgba($color, $opacity = false)
 {
-    return Colorcodeconverter::convertHexToRgba($color, $opacity);
+    return (new ColorCodeConverter())->convertHexToRgba($color, $opacity);
 }
 
 if (!function_exists('isAdmin')) {
@@ -1291,5 +1469,156 @@ if (!function_exists('get_url_params')) {
         parse_str($query_str, $query_params);
 
         return $query_params[$key] ?? '';
+    }
+}
+
+if (!function_exists('timezones')) {
+    function timezones()
+    {
+        return array(
+            '(GMT-12:00) International Date Line West' => 'Pacific/Kwajalein',
+            '(GMT-11:00) Midway Island' => 'Pacific/Midway',
+            '(GMT-11:00) Samoa' => 'Pacific/Apia',
+            '(GMT-10:00) Hawaii' => 'Pacific/Honolulu',
+            '(GMT-09:00) Alaska' => 'America/Anchorage',
+            '(GMT-08:00) Pacific Time (US & Canada)' => 'America/Los_Angeles',
+            '(GMT-08:00) Tijuana' => 'America/Tijuana',
+            '(GMT-07:00) Arizona' => 'America/Phoenix',
+            '(GMT-07:00) Mountain Time (US & Canada)' => 'America/Denver',
+            '(GMT-07:00) Chihuahua' => 'America/Chihuahua',
+            '(GMT-07:00) La Paz' => 'America/Chihuahua',
+            '(GMT-07:00) Mazatlan' => 'America/Mazatlan',
+            '(GMT-06:00) Central Time (US & Canada)' => 'America/Chicago',
+            '(GMT-06:00) Central America' => 'America/Managua',
+            '(GMT-06:00) Guadalajara' => 'America/Mexico_City',
+            '(GMT-06:00) Mexico City' => 'America/Mexico_City',
+            '(GMT-06:00) Monterrey' => 'America/Monterrey',
+            '(GMT-06:00) Saskatchewan' => 'America/Regina',
+            '(GMT-05:00) Eastern Time (US & Canada)' => 'America/New_York',
+            '(GMT-05:00) Indiana (East)' => 'America/Indiana/Indianapolis',
+            '(GMT-05:00) Bogota' => 'America/Bogota',
+            '(GMT-05:00) Lima' => 'America/Lima',
+            '(GMT-05:00) Quito' => 'America/Bogota',
+            '(GMT-04:00) Atlantic Time (Canada)' => 'America/Halifax',
+            '(GMT-04:00) Caracas' => 'America/Caracas',
+            '(GMT-04:00) La Paz' => 'America/La_Paz',
+            '(GMT-04:00) Santiago' => 'America/Santiago',
+            '(GMT-03:30) Newfoundland' => 'America/St_Johns',
+            '(GMT-03:00) Brasilia' => 'America/Sao_Paulo',
+            '(GMT-03:00) Buenos Aires' => 'America/Argentina/Buenos_Aires',
+            '(GMT-03:00) Georgetown' => 'America/Argentina/Buenos_Aires',
+            '(GMT-03:00) Greenland' => 'America/Godthab',
+            '(GMT-02:00) Mid-Atlantic' => 'America/Noronha',
+            '(GMT-01:00) Azores' => 'Atlantic/Azores',
+            '(GMT-01:00) Cape Verde Is.' => 'Atlantic/Cape_Verde',
+            '(GMT) Casablanca' => 'Africa/Casablanca',
+            '(GMT) Dublin' => 'Europe/London',
+            '(GMT) Edinburgh' => 'Europe/London',
+            '(GMT) Lisbon' => 'Europe/Lisbon',
+            '(GMT) London' => 'Europe/London',
+            '(GMT) UTC' => 'UTC',
+            '(GMT) Monrovia' => 'Africa/Monrovia',
+            '(GMT+01:00) Amsterdam' => 'Europe/Amsterdam',
+            '(GMT+01:00) Belgrade' => 'Europe/Belgrade',
+            '(GMT+01:00) Berlin' => 'Europe/Berlin',
+            '(GMT+01:00) Bern' => 'Europe/Berlin',
+            '(GMT+01:00) Bratislava' => 'Europe/Bratislava',
+            '(GMT+01:00) Brussels' => 'Europe/Brussels',
+            '(GMT+01:00) Budapest' => 'Europe/Budapest',
+            '(GMT+01:00) Copenhagen' => 'Europe/Copenhagen',
+            '(GMT+01:00) Ljubljana' => 'Europe/Ljubljana',
+            '(GMT+01:00) Madrid' => 'Europe/Madrid',
+            '(GMT+01:00) Paris' => 'Europe/Paris',
+            '(GMT+01:00) Prague' => 'Europe/Prague',
+            '(GMT+01:00) Rome' => 'Europe/Rome',
+            '(GMT+01:00) Sarajevo' => 'Europe/Sarajevo',
+            '(GMT+01:00) Skopje' => 'Europe/Skopje',
+            '(GMT+01:00) Stockholm' => 'Europe/Stockholm',
+            '(GMT+01:00) Vienna' => 'Europe/Vienna',
+            '(GMT+01:00) Warsaw' => 'Europe/Warsaw',
+            '(GMT+01:00) West Central Africa' => 'Africa/Lagos',
+            '(GMT+01:00) Zagreb' => 'Europe/Zagreb',
+            '(GMT+02:00) Athens' => 'Europe/Athens',
+            '(GMT+02:00) Bucharest' => 'Europe/Bucharest',
+            '(GMT+02:00) Cairo' => 'Africa/Cairo',
+            '(GMT+02:00) Harare' => 'Africa/Harare',
+            '(GMT+02:00) Helsinki' => 'Europe/Helsinki',
+            '(GMT+02:00) Istanbul' => 'Europe/Istanbul',
+            '(GMT+02:00) Jerusalem' => 'Asia/Jerusalem',
+            '(GMT+02:00) Kyev' => 'Europe/Kiev',
+            '(GMT+02:00) Minsk' => 'Europe/Minsk',
+            '(GMT+02:00) Pretoria' => 'Africa/Johannesburg',
+            '(GMT+02:00) Riga' => 'Europe/Riga',
+            '(GMT+02:00) Sofia' => 'Europe/Sofia',
+            '(GMT+02:00) Tallinn' => 'Europe/Tallinn',
+            '(GMT+02:00) Vilnius' => 'Europe/Vilnius',
+            '(GMT+03:00) Baghdad' => 'Asia/Baghdad',
+            '(GMT+03:00) Kuwait' => 'Asia/Kuwait',
+            '(GMT+03:00) Moscow' => 'Europe/Moscow',
+            '(GMT+03:00) Nairobi' => 'Africa/Nairobi',
+            '(GMT+03:00) Riyadh' => 'Asia/Riyadh',
+            '(GMT+03:00) St. Petersburg' => 'Europe/Moscow',
+            '(GMT+03:00) Volgograd' => 'Europe/Volgograd',
+            '(GMT+03:30) Tehran' => 'Asia/Tehran',
+            '(GMT+04:00) Abu Dhabi' => 'Asia/Muscat',
+            '(GMT+04:00) Baku' => 'Asia/Baku',
+            '(GMT+04:00) Muscat' => 'Asia/Muscat',
+            '(GMT+04:00) Tbilisi' => 'Asia/Tbilisi',
+            '(GMT+04:00) Yerevan' => 'Asia/Yerevan',
+            '(GMT+04:30) Kabul' => 'Asia/Kabul',
+            '(GMT+05:00) Ekaterinburg' => 'Asia/Yekaterinburg',
+            '(GMT+05:00) Islamabad' => 'Asia/Karachi',
+            '(GMT+05:00) Karachi' => 'Asia/Karachi',
+            '(GMT+05:00) Tashkent' => 'Asia/Tashkent',
+            '(GMT+05:30) Chennai' => 'Asia/Kolkata',
+            '(GMT+05:30) Kolkata' => 'Asia/Kolkata',
+            '(GMT+05:30) Mumbai' => 'Asia/Kolkata',
+            '(GMT+05:30) New Delhi' => 'Asia/Kolkata',
+            '(GMT+05:45) Kathmandu' => 'Asia/Kathmandu',
+            '(GMT+06:00) Almaty' => 'Asia/Almaty',
+            '(GMT+06:00) Astana' => 'Asia/Dhaka',
+            '(GMT+06:00) Dhaka' => 'Asia/Dhaka',
+            '(GMT+06:00) Novosibirsk' => 'Asia/Novosibirsk',
+            '(GMT+06:00) Sri Jayawardenepura' => 'Asia/Colombo',
+            '(GMT+06:30) Rangoon' => 'Asia/Rangoon',
+            '(GMT+07:00) Bangkok' => 'Asia/Bangkok',
+            '(GMT+07:00) Hanoi' => 'Asia/Bangkok',
+            '(GMT+07:00) Jakarta' => 'Asia/Jakarta',
+            '(GMT+07:00) Krasnoyarsk' => 'Asia/Krasnoyarsk',
+            '(GMT+08:00) Beijing' => 'Asia/Hong_Kong',
+            '(GMT+08:00) Chongqing' => 'Asia/Chongqing',
+            '(GMT+08:00) Hong Kong' => 'Asia/Hong_Kong',
+            '(GMT+08:00) Irkutsk' => 'Asia/Irkutsk',
+            '(GMT+08:00) Kuala Lumpur' => 'Asia/Kuala_Lumpur',
+            '(GMT+08:00) Perth' => 'Australia/Perth',
+            '(GMT+08:00) Singapore' => 'Asia/Singapore',
+            '(GMT+08:00) Taipei' => 'Asia/Taipei',
+            '(GMT+08:00) Ulaan Bataar' => 'Asia/Irkutsk',
+            '(GMT+08:00) Urumqi' => 'Asia/Urumqi',
+            '(GMT+09:00) Osaka' => 'Asia/Tokyo',
+            '(GMT+09:00) Sapporo' => 'Asia/Tokyo',
+            '(GMT+09:00) Seoul' => 'Asia/Seoul',
+            '(GMT+09:00) Tokyo' => 'Asia/Tokyo',
+            '(GMT+09:00) Yakutsk' => 'Asia/Yakutsk',
+            '(GMT+09:30) Adelaide' => 'Australia/Adelaide',
+            '(GMT+09:30) Darwin' => 'Australia/Darwin',
+            '(GMT+10:00) Brisbane' => 'Australia/Brisbane',
+            '(GMT+10:00) Canberra' => 'Australia/Sydney',
+            '(GMT+10:00) Guam' => 'Pacific/Guam',
+            '(GMT+10:00) Hobart' => 'Australia/Hobart',
+            '(GMT+10:00) Melbourne' => 'Australia/Melbourne',
+            '(GMT+10:00) Port Moresby' => 'Pacific/Port_Moresby',
+            '(GMT+10:00) Sydney' => 'Australia/Sydney',
+            '(GMT+10:00) Vladivostok' => 'Asia/Vladivostok',
+            '(GMT+11:00) Magadan' => 'Asia/Magadan',
+            '(GMT+11:00) New Caledonia' => 'Asia/Magadan',
+            '(GMT+11:00) Solomon Is.' => 'Asia/Magadan',
+            '(GMT+12:00) Auckland' => 'Pacific/Auckland',
+            '(GMT+12:00) Fiji' => 'Pacific/Fiji',
+            '(GMT+12:00) Kamchatka' => 'Asia/Kamchatka',
+            '(GMT+12:00) Marshall Is.' => 'Pacific/Fiji',
+            '(GMT+12:00) Wellington' => 'Pacific/Auckland',
+            '(GMT+13:00) Nuku\'alofa' => 'Pacific/Tongatapu'
+        );
     }
 }

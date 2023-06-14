@@ -2,14 +2,6 @@
     @csrf
     <div class="p-3">
         <div class="row">
-            <div class="col-md-4">
-                <label>{{ translate('Customer Name')}}</label>
-            </div>
-            <div class="col-md-8">
-                <input type="text" class="form-control mb-3" placeholder="{{ translate('Customer Name')}}" name="name" value="{{ $address_data->name }}" required>
-            </div>
-        </div>
-        <div class="row">
             <div class="col-md-2">
                 <label>{{ translate('Address')}}</label>
             </div>

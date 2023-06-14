@@ -186,25 +186,6 @@ class SendSMSUtility
             $response = curl_exec($ch);
             curl_close($ch);
             return $response;
-        } elseif (OtpConfiguration::where('type', 'elitbuzz')->first()->value == 1) {
-            $url = "https://msg.elitbuzz-bd.com/smsapi";
-            $data = [
-                "api_key" => env('ELITBUZZ_API_KEY'),
-                "type" => "text",
-                "contacts" => $to,
-                "senderid" => env('ELITBUZZ_USER_SENDER_ID'),
-                "label" => "transactional",
-                "msg" => $text,
-            ];
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $response = curl_exec($ch);
-            curl_close($ch);
-            return $response;
         }elseif (OtpConfiguration::where('type', 'sparrow')->first()->value == 1) {
             $url = "http://api.sparrowsms.com/v2/sms/";  
 
@@ -222,6 +203,43 @@ class SendSMSUtility
                 // Response
                 $response = curl_exec($ch);
                 curl_close($ch);
+            return $response;
+        }elseif (OtpConfiguration::where('type', 'zender')->first()->value == 1) {
+            
+             $args = [
+                "secret" => env('ZENDER_API_SECRET'),
+                "phone" => $to,
+                "message" => $text,            
+                "mode" => env('ZENDER_MODE'),
+                "sim" => env('ZENDER_SIM'),
+                env('ZENDER_MODE_TYPE') => env('ZENDER_DEVICE_ID'),
+            ];
+
+            $cURL = curl_init("https://sms.dzshopee.com/api/send/sms");
+            curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($cURL, CURLOPT_POSTFIELDS, $args);
+            $response = curl_exec($cURL);
+            curl_close($cURL);
+            return $response;
+            
+        } elseif (OtpConfiguration::where('type', 'sparrow')->first()->value == 1) {
+            $url = "http://api.sparrowsms.com/v2/sms/";
+
+            $args = http_build_query(array(
+                "token" => env('SPARROW_TOKEN'),
+                "from" => env('MESSGAE_FROM'),
+                "to" => $to,
+                "text" => $text
+            ));
+            # Make the call using API.
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            // Response
+            $response = curl_exec($ch);
+            curl_close($ch);
             return $response;
         }
         return true;

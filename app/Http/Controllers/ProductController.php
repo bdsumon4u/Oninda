@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use AizPackages\CombinationGenerate\Services\CombinationService;
 use App\Http\Requests\ProductRequest;
 use Illuminate\Http\Request;
 use App\Models\Product;
@@ -44,7 +45,7 @@ class ProductController extends Controller
         $this->middleware(['permission:show_all_products'])->only('all_products');
         $this->middleware(['permission:show_in_house_products'])->only('admin_products');
         $this->middleware(['permission:show_seller_products'])->only('seller_products');
-        $this->middleware(['permission:product_edit'])->only('admin_product_edit','seller_product_edit');
+        $this->middleware(['permission:product_edit'])->only('admin_product_edit', 'seller_product_edit');
         $this->middleware(['permission:product_duplicate'])->only('duplicate');
         $this->middleware(['permission:product_delete'])->only('destroy');
     }
@@ -198,7 +199,7 @@ class ProductController extends Controller
         $request->merge(['product_id' => $product->id]);
 
         //VAT & Tax
-        if($request->tax_id) {
+        if ($request->tax_id) {
             $this->productTaxService->store($request->only([
                 'tax_id', 'tax', 'tax_type', 'product_id'
             ]));
@@ -394,7 +395,7 @@ class ProductController extends Controller
         $product_new = $product->replicate();
         $product_new->slug = $product_new->slug . '-' . Str::random(5);
         $product_new->save();
-        
+
         //Product Stock
         $this->productStockService->product_duplicate_store($product->stocks, $product_new);
 
@@ -442,7 +443,7 @@ class ProductController extends Controller
         }
 
         $product->save();
-        
+
         Artisan::call('view:clear');
         Artisan::call('cache:clear');
         return 1;
@@ -465,7 +466,7 @@ class ProductController extends Controller
         }
 
         $product->save();
-        
+
         Artisan::call('view:clear');
         Artisan::call('cache:clear');
         return 1;
@@ -499,17 +500,19 @@ class ProductController extends Controller
         if ($request->has('choice_no')) {
             foreach ($request->choice_no as $key => $no) {
                 $name = 'choice_options_' . $no;
-                $data = array();
                 // foreach (json_decode($request[$name][0]) as $key => $item) {
-                foreach ($request[$name] as $key => $item) {
-                    // array_push($data, $item->value);
-                    array_push($data, $item);
+                if (isset($request[$name])) {
+                    $data = array();
+                    foreach ($request[$name] as $key => $item) {
+                        // array_push($data, $item->value);
+                        array_push($data, $item);
+                    }
+                    array_push($options, $data);
                 }
-                array_push($options, $data);
             }
         }
 
-        $combinations = Combinations::makeCombinations($options);
+        $combinations = (new CombinationService())->generate_combination($options);
         return view('backend.product.products.sku_combinations', compact('combinations', 'unit_price', 'colors_active', 'product_name'));
     }
 
@@ -531,17 +534,19 @@ class ProductController extends Controller
         if ($request->has('choice_no')) {
             foreach ($request->choice_no as $key => $no) {
                 $name = 'choice_options_' . $no;
-                $data = array();
                 // foreach (json_decode($request[$name][0]) as $key => $item) {
-                foreach ($request[$name] as $key => $item) {
-                    // array_push($data, $item->value);
-                    array_push($data, $item);
+                if (isset($request[$name])) {
+                    $data = array();
+                    foreach ($request[$name] as $key => $item) {
+                        // array_push($data, $item->value);
+                        array_push($data, $item);
+                    }
+                    array_push($options, $data);
                 }
-                array_push($options, $data);
             }
         }
 
-        $combinations = Combinations::makeCombinations($options);
+        $combinations = (new CombinationService())->generate_combination($options);
         return view('backend.product.products.sku_combinations_edit', compact('combinations', 'unit_price', 'colors_active', 'product_name', 'product'));
     }
 }

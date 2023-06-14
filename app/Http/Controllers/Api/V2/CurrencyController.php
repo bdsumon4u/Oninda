@@ -9,6 +9,6 @@ class CurrencyController extends Controller
 {
     public function index()
     {
-        return new CurrencyCollection(Currency::all());
+        return new CurrencyCollection(Currency::where('status', 1)->get());
     }
 }

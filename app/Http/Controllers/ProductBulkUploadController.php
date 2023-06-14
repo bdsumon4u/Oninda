@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\ProductsImport;
 use App\Models\ProductsExport;
 use PDF;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use Auth;
 
 class ProductBulkUploadController extends Controller
@@ -27,7 +27,7 @@ class ProductBulkUploadController extends Controller
                 return view('seller.product_bulk_upload.index');
             }
             else{
-                flash('Your shop is not verified yet!')->warning();
+                flash(translate('Your shop is not verified yet!'))->warning();
                 return back();
             }
         }

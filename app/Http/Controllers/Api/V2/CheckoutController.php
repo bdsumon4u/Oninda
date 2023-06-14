@@ -16,19 +16,19 @@ class CheckoutController
     {
         
         $coupon = Coupon::where('code', $request->coupon_code)->first(); 
+        if ($coupon == null) {
+            return response()->json([
+                'result' => false,
+                'message' => translate('Invalid coupon code!')
+            ]);
+        }
         $cart_items = Cart::where('user_id', auth()->user()->id)->where('owner_id', $coupon->user_id)->get();
+        
         $coupon_discount = 0;
         if ($cart_items->isEmpty()) {
             return response()->json([
                 'result' => false,
                 'message' => translate('This coupon is not applicable to your cart products!')
-            ]);
-        }
-
-        if ($coupon == null) {
-            return response()->json([
-                'result' => false,
-                'message' => translate('Invalid coupon code!')
             ]);
         }
 

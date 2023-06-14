@@ -17,6 +17,7 @@
                         <label class="col-md-3 col-form-label">{{translate('Sort by Category')}} :</label>
                         <div class="col-md-5">
                             <select id="demo-ease" class="from-control aiz-selectpicker" name="category_id" required>
+                                <option value="">{{ translate('Choose Category') }}</option>
                                 @foreach (\App\Models\Category::all() as $key => $category)
                                     <option value="{{ $category->id }}" @if($sort_by == $category->id) selected @endif>{{ $category->getTranslation('name') }}</option>
                                 @endforeach
@@ -50,7 +51,7 @@
                     </tbody>
                 </table>
                 <div class="aiz-pagination mt-4">
-                    {{ $products->links() }}
+                    {{ $products->appends(request()->input())->links() }}
                 </div>
             </div>
         </div>

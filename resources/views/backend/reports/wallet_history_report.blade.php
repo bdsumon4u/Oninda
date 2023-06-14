@@ -81,7 +81,7 @@
                     </tbody>
                 </table>
                 <div class="aiz-pagination mt-4">
-                    {{ $wallets->links() }}
+                    {{ $wallets->appends(request()->input())->links() }}
                 </div>
             </div>
         </div>

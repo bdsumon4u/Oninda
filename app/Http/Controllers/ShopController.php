@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SellerRegistrationRequest;
 use Illuminate\Http\Request;
 use App\Models\Shop;
 use App\Models\User;
@@ -56,56 +57,32 @@ class ShopController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(SellerRegistrationRequest $request)
     {
-        $user = null;
-        if (!Auth::check()) {
-            if (User::where('email', $request->email)->first() != null) {
-                flash(translate('Email already exists!'))->error();
-                return back();
-            }
-            if ($request->password == $request->password_confirmation) {
-                $user = new User;
-                $user->name = $request->name;
-                $user->email = $request->email;
-                $user->user_type = "seller";
-                $user->password = Hash::make($request->password);
-                $user->save();
-            } else {
-                flash(translate('Sorry! Password did not match.'))->error();
-                return back();
-            }
-        } else {
-            $user = Auth::user();
-            if ($user->customer != null) {
-                $user->customer->delete();
-            }
-            $user->user_type = "seller";
-            $user->save();
-        }
+        $user = new User;
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->user_type = "seller";
+        $user->password = Hash::make($request->password);
 
-        if (Shop::where('user_id', $user->id)->first() == null) {
+        if ($user->save()) {
             $shop = new Shop;
             $shop->user_id = $user->id;
             $shop->name = $request->shop_name;
             $shop->address = $request->address;
-            $shop->slug = preg_replace('/\s+/', '-', $request->shop_name);
-
-            if ($shop->save()) {
-                auth()->login($user, false);
-                if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
-                    $user->email_verified_at = date('Y-m-d H:m:s');
-                    $user->save();
-                } else {
-                    $user->notify(new EmailVerificationNotification());
-                }
-
-                flash(translate('Your Shop has been created successfully!'))->success();
-                return redirect()->route('shops.index');
-            } else {
-                $user->user_type == 'customer';
+            $shop->slug = preg_replace('/\s+/', '-', str_replace("/"," ", $request->shop_name));
+            $shop->save();
+            
+            auth()->login($user, false);
+            if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
+                $user->email_verified_at = date('Y-m-d H:m:s');
                 $user->save();
+            } else {
+                $user->notify(new EmailVerificationNotification());
             }
+
+            flash(translate('Your Shop has been created successfully!'))->success();
+            return redirect()->route('seller.shop.index');
         }
 
         flash(translate('Sorry! Something went wrong.'))->error();

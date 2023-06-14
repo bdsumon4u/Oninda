@@ -51,8 +51,7 @@ class AdminController extends Controller
 
     function clearCache(Request $request)
     {
-        Artisan::call('cache:clear');
-        Artisan::call('config:clear');
+        Artisan::call('optimize:clear');
         flash(translate('Cache cleared successfully'))->success();
         return back();
     }

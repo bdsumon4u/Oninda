@@ -31,7 +31,7 @@
                             <label class="control-label">{{translate('Set Minimum Order Amount')}}</label>
                         </div>
                         <div class="col-md-8">
-                            <input type="text" class="form-control" name="minimum_order_amount" value="{{ get_setting('minimum_order_amount') }}" placeholder="{{ translate('Minimum Order Amount') }}" required>
+                            <input type="number" min="0" step="0.01" class="form-control" name="minimum_order_amount" value="{{ get_setting('minimum_order_amount') }}" placeholder="{{ translate('Minimum Order Amount') }}" required>
                         </div>
                     </div>
                     <div class="form-group mb-0 text-right">

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use AizPackages\CombinationGenerate\Services\CombinationService;
 use App\Models\ProductStock;
 use App\Utility\ProductUtility;
-use Combinations;
 
 class ProductStockService
 {
@@ -15,10 +15,10 @@ class ProductStockService
         $options = ProductUtility::get_attribute_options($collection);
         
         //Generates the combinations of customer choice options
-        $combinations = Combinations::makeCombinations($options);
+        $combinations = (new CombinationService())->generate_combination($options);
         
         $variant = '';
-        if (count($combinations[0]) > 0) {
+        if (count($combinations) > 0) {
             $product->variant_product = 1;
             $product->save();
             foreach ($combinations as $key => $combination) {

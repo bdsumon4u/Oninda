@@ -43,7 +43,7 @@
                 </tbody>
             </table>
             <div class="aiz-pagination">
-                {{ $countries->links() }}
+                {{ $countries->appends(request()->input())->links() }}
             </div>
         </div>
     </div>

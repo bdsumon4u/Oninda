@@ -172,24 +172,39 @@ class PaymentTypesController
             }
 
             if (addon_is_activated('paytm')) {
-                $payment_type = array();
-                $payment_type['payment_type'] = 'paytm';
-                $payment_type['payment_type_key'] = 'paytm';
-                $payment_type['image'] = static_asset('assets/img/cards/paytm.jpg');
-                $payment_type['name'] = "Paytm";
-                $payment_type['title'] = "Checkout with Paytm";
-                $payment_type['offline_payment_id'] = 0;
-                $payment_type['details'] = "";
-                if ($mode == 'wallet') {
-                    $payment_type['title'] = "Recharge with Paytm";
+
+                if(get_setting('paytm') == 1){
+                    $payment_type = array();
+                    $payment_type['payment_type'] = 'paytm';
+                    $payment_type['payment_type_key'] = 'paytm';
+                    $payment_type['image'] = static_asset('assets/img/cards/paytm.jpg');
+                    $payment_type['name'] = "Paytm";
+                    $payment_type['title'] = "Checkout with Paytm";
+                    $payment_type['offline_payment_id'] = 0;
+                    $payment_type['details'] = "";
+                    if ($mode == 'wallet') {
+                        $payment_type['title'] = "Recharge with Paytm";
+                    }
+    
+                    $payment_types[] = $payment_type;
                 }
+                if(get_setting('khalti_payment') == 1){
+                    $payment_type = array();
+                    $payment_type['payment_type'] = 'khalti';
+                    $payment_type['payment_type_key'] = 'khalti';
+                    $payment_type['image'] = static_asset('assets/img/cards/khalti.png');
+                    $payment_type['name'] = "Khalti";
+                    $payment_type['title'] = "Checkout with Khalti";
+                    $payment_type['offline_payment_id'] = 0;
+                    $payment_type['details'] = "";
+                    if ($mode == 'wallet') {
+                        $payment_type['title'] = "Recharge with Khalti";
+                    }
 
-                $payment_types[] = $payment_type;
+                    $payment_types[] = $payment_type;
+                }
             }
-
         }
-
-
 
         // you cannot recharge wallet by wallet or cash payment
         if ($mode != 'wallet' && $mode != 'seller_package' && $list != "offline") {
@@ -207,19 +222,21 @@ class PaymentTypesController
             }
 
             $haveDigitalProduct = false;
+            $cash_on_delivery = false;
 
             if ($mode == "order") {
                 $carts = auth()->user()->carts;
 
                 foreach ($carts as $key => $cart) {
                     $haveDigitalProduct =  $cart->product->digital == 1;
-                    if ($haveDigitalProduct) {
+                    $cash_on_delivery =  $cart->product->cash_on_delivery == 0;
+                    if ($haveDigitalProduct || $cash_on_delivery) {
                         break;
                     }
                 }
-            } 
+            }
 
-            if (get_setting('cash_payment') == 1  && !$haveDigitalProduct) {
+            if (get_setting('cash_payment') == 1  && !$haveDigitalProduct && !$cash_on_delivery) {
                 $payment_type = array();
                 $payment_type['payment_type'] = 'cash_payment';
                 $payment_type['payment_type_key'] = 'cash_on_delivery';
@@ -246,7 +263,6 @@ class PaymentTypesController
                     $bank_list = "<ul> $bank_list_item <ul>";
                 }
 
-
                 $payment_type = array();
                 $payment_type['payment_type'] = 'manual_payment';
                 $payment_type['payment_type_key'] = 'manual_payment_' . $method->id;
@@ -259,10 +275,6 @@ class PaymentTypesController
                 $payment_types[] = $payment_type;
             }
         }
-
-
-
-
 
         return response()->json($payment_types);
     }

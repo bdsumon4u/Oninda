@@ -91,7 +91,7 @@
                 </tbody>
             </table>
             <div class="aiz-pagination">
-                {{ $blogs->links() }}
+                {{ $blogs->appends(request()->input())->links() }}
             </div>
         </div>
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use AizPackages\CombinationGenerate\Services\CombinationService;
 use App\Models\Color;
 use App\Models\Product;
 use App\Models\User;
@@ -79,8 +80,9 @@ class ProductService
 
         $options = ProductUtility::get_attribute_options($collection);
 
-        $combinations = Combinations::makeCombinations($options);
-        if (count($combinations[0]) > 0) {
+        $combinations = (new CombinationService())->generate_combination($options);
+        
+        if (count($combinations) > 0) {
             foreach ($combinations as $key => $combination) {
                 $str = ProductUtility::get_combination_string($combination, $collection);
 
@@ -172,12 +174,6 @@ class ProductService
             $collection['todays_deal'] = 0;
         }
 
-        if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
-            unset($collection['name']);
-            unset($collection['unit']);
-            unset($collection['description']);
-        }
-        unset($collection['lang']);
 
         $tags = array();
         if ($collection['tags'][0] != null) {
@@ -205,6 +201,14 @@ class ProductService
         if ($collection['meta_img'] == null) {
             $collection['meta_img'] = $collection['thumbnail_img'];
         }
+
+        if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
+            unset($collection['name']);
+            unset($collection['unit']);
+            unset($collection['description']);
+        }
+        unset($collection['lang']);
+
         
         $shipping_cost = 0;
         if (isset($collection['shipping_type'])) {
@@ -228,8 +232,8 @@ class ProductService
 
         $options = ProductUtility::get_attribute_options($collection);
 
-        $combinations = Combinations::makeCombinations($options);
-        if (count($combinations[0]) > 0) {
+        $combinations = (new CombinationService())->generate_combination($options);
+        if (count($combinations) > 0) {
             foreach ($combinations as $key => $combination) {
                 $str = ProductUtility::get_combination_string($combination, $collection);
 

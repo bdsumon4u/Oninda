@@ -57,7 +57,7 @@
             </tbody>
         </table>
         <div class="aiz-pagination">
-            {{ $categories->links() }}
+            {{ $categories->appends(request()->input())->links() }}
         </div>
     </div>
 </div>

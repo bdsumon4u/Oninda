@@ -15,7 +15,11 @@ use Hash;
 use GeneaLabs\LaravelSocialiter\Facades\Socialiter;
 use Socialite;
 use App\Models\Cart;
+use App\Rules\Recaptcha;
 use App\Services\SocialRevoke;
+
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 
 
@@ -23,29 +27,43 @@ class AuthController extends Controller
 {
     public function signup(Request $request)
     {
-        if (User::where('email', $request->email_or_phone)->orWhere('phone', $request->email_or_phone)->first() != null) {
+        $messages = array(
+            'name.required' => translate('Name is required'),
+            'email_or_phone.required' => $request->register_by == 'email' ? translate('Email is required') : translate('Phone is required'),
+            'email_or_phone.email' => translate('Email must be a valid email address'),
+            'email_or_phone.numeric' => translate('Phone must be a number.'),
+            'email_or_phone.unique' => $request->register_by == 'email' ? translate('The email has already been taken') : translate('The phone has already been taken'),
+            'password.required' => translate('Password is required'),
+            'password.confirmed' => translate('Password confirmation does not match'),
+            'password.min' => translate('Minimum 6 digits required for password')
+        );
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'password' => 'required|min:6|confirmed',
+            'email_or_phone' => [
+                'required',
+                Rule::when($request->register_by === 'email', ['email', 'unique:users,email']),
+                Rule::when($request->register_by === 'phone', ['numeric', 'unique:users,phone']),
+            ],
+            'g-recaptcha-response' => [
+                Rule::when(get_setting('google_recaptcha') == 1, ['required', new Recaptcha()], ['sometimes'])
+            ]
+        ], $messages);
+
+        if ($validator->fails()) {
             return response()->json([
                 'result' => false,
-                'message' => translate('User already exists.'),
-                'user_id' => 0
-            ], 201);
+                'message' => $validator->errors()
+            ]);
         }
 
-        if ($request->register_by == 'email') {
-            $user = new User([
-                'name' => $request->name,
-                'email' => $request->email_or_phone,
-                'password' => bcrypt($request->password),
-                'verification_code' => rand(100000, 999999)
-            ]);
-        } else {
-            $user = new User([
-                'name' => $request->name,
-                'phone' => $request->email_or_phone,
-                'password' => bcrypt($request->password),
-                'verification_code' => rand(100000, 999999)
-            ]);
-        }
+        $user = new User([
+            'name' => $request->name,
+            'email' => $request->register_by == 'email' ? $request->email_or_phone : '',
+            'phone' => $request->register_by == 'phone' ? $request->email_or_phone : '',
+            'password' => bcrypt($request->password),
+            'verification_code' => rand(100000, 999999)
+        ]);
 
         $user->email_verified_at = null;
         if ($user->email != null) {
@@ -70,10 +88,12 @@ class AuthController extends Controller
 
         //create token
         $user->createToken('tokens')->plainTextToken;
-
+        
         return response()->json([
             'result' => true,
-            'message' => translate('Registration Successful. Please verify and log in to your account.'),
+            'message' => get_setting('email_verification') == 1 ?
+                translate('Registration Successful! Please verify and log in to your account.') :
+                translate('Registration Successful! Please log in to your account.'),
             'user_id' => $user->id
         ], 201);
     }
@@ -154,26 +174,22 @@ class AuthController extends Controller
         }
 
         if ($user != null) {
-            if(!$user->banned){
+            if (!$user->banned) {
                 if (Hash::check($request->password, $user->password)) {
 
                     if ($user->email_verified_at == null) {
                         return response()->json(['result' => false, 'message' => translate('Please verify your account'), 'user' => null], 401);
                     }
                     return $this->loginSuccess($user);
-                }
-                else {
+                } else {
                     return response()->json(['result' => false, 'message' => translate('Unauthorized'), 'user' => null], 401);
                 }
+            } else {
+                return response()->json(['result' => false, 'message' => translate('User is banned'), 'user' => null], 401);
             }
-            else{
-                return response()->json(['result' => false, 'message' => translate('User is banned'), 'user' => null], 401); 
-            }  
-        }
-        else {
+        } else {
             return response()->json(['result' => false, 'message' => translate('User not found'), 'user' => null], 401);
         }
-        
     }
 
     public function user(Request $request)
@@ -256,18 +272,17 @@ class AuthController extends Controller
             $existing_or_new_user = User::firstOrNew(
                 [['email', '!=', null], 'email' => $social_user_details->email]
             );
-            
+
             $existing_or_new_user->user_type = 'customer';
             $existing_or_new_user->provider_id = $social_user_details->id;
-            $existing_or_new_user->provider = $request->social_provider;
+
             if (!$existing_or_new_user->exists) {
                 if ($request->social_provider == 'apple') {
-                    if($request->name) {
+                    if ($request->name) {
                         $existing_or_new_user->name = $request->name;
                     } else {
                         $existing_or_new_user->name = 'Apple User';
                     }
-                    
                 } else {
                     $existing_or_new_user->name = $social_user_details->name;
                 }

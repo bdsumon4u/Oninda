@@ -37,10 +37,121 @@ class ProductController extends Controller
     }
 
 
+
+
+
     // public function admin()
     // {
     //     return new ProductCollection(Product::where('added_by', 'admin')->latest()->paginate(10));
     // }
+
+    public function getPrice(Request $request)
+    {
+        $product = Product::findOrFail($request->id);
+        $str = '';
+        $tax = 0;
+        $quantity = 1;
+        if ($request->has('quantity')) {
+            $quantity = $request->quantity;
+        }
+
+        if ($request->has('color')) {
+            $str = $request['color'];
+        }
+
+        if ($request->has('color') && $request->color != "") {
+            $str = Color::where('code', '#' . $request->color)->first()->name;
+        }
+
+        $var_str = str_replace(',', '-', $request->variants);
+        $var_str = str_replace(' ', '', $var_str);
+
+        if ($var_str != "") {
+            $temp_str = $str == "" ? $var_str : '-' . $var_str;
+            $str .= $temp_str;
+        }
+
+        $product_stock = $product->stocks->where('variant', $str)->first();
+        $price = $product_stock->price;
+
+
+        if ($product->wholesale_product) {
+            $wholesalePrice = $product_stock->wholesalePrices->where('min_qty', '<=', $quantity)->where('max_qty', '>=', $quantity)->first();
+            // dd($wholesalePrice);
+            if ($wholesalePrice) {
+                $price = $wholesalePrice->price;
+            }
+        }
+
+        $stock_qty = $product_stock->qty;
+        $stock_txt = $product_stock->qty;
+        $max_limit = $product_stock->qty;
+
+        if ($stock_qty >= 1 && $product->min_qty <= $stock_qty) {
+            $in_stock = 1;
+        } else {
+            $in_stock = 0;
+        }
+
+        //Product Stock Visibility
+        if ($product->stock_visibility_state == 'text') {
+            if ($stock_qty >= 1 && $product->min_qty < $stock_qty) {
+                $stock_txt = translate('In Stock');
+            } else {
+                $stock_txt = translate('Out Of Stock');
+            }
+        }
+
+        //discount calculation
+        $discount_applicable = false;
+
+        if ($product->discount_start_date == null) {
+            $discount_applicable = true;
+        } elseif (
+            strtotime(date('d-m-Y H:i:s')) >= $product->discount_start_date &&
+            strtotime(date('d-m-Y H:i:s')) <= $product->discount_end_date
+        ) {
+            $discount_applicable = true;
+        }
+
+        if ($discount_applicable) {
+            if ($product->discount_type == 'percent') {
+                $price -= ($price * $product->discount) / 100;
+            } elseif ($product->discount_type == 'amount') {
+                $price -= $product->discount;
+            }
+        }
+
+        // taxes
+        foreach ($product->taxes as $product_tax) {
+            if ($product_tax->tax_type == 'percent') {
+                $tax += ($price * $product_tax->tax) / 100;
+            } elseif ($product_tax->tax_type == 'amount') {
+                $tax += $product_tax->tax;
+            }
+        }
+
+        $price += $tax;
+
+        return response()->json(
+
+            [
+                'result' => true,
+                'data' => [
+                    'price' => single_price($price * $quantity),
+                    'stock' => $stock_qty,
+                    'stock_txt' => $stock_txt,
+                    'digital' => $product->digital,
+                    'variant' => $str,
+                    'variation' => $str,
+                    'max_limit' => $max_limit,
+                    'in_stock' => $in_stock,
+                    'image' => $product_stock->image == null ? "" : uploaded_asset($product_stock->image)
+                ]
+
+            ]
+        );
+    }
 
     public function seller($id, Request $request)
     {
@@ -73,17 +184,17 @@ class ProductController extends Controller
         $products = Product::where('brand_id', $id)->physical();
         if ($request->name != "" || $request->name != null) {
             $products = $products->where('name', 'like', '%' . $request->name . '%');
-        }
 
-        return new ProductMiniCollection(filter_products($products)->latest()->paginate(10));
+            return new ProductMiniCollection(filter_products($products)->latest()->paginate(10));
+        }
     }
 
     public function todaysDeal()
     {
-        return Cache::remember('app.todays_deal', 86400, function () {
-            $products = Product::where('todays_deal', 1)->physical();
-            return new ProductMiniCollection(filter_products($products)->limit(20)->latest()->get());
-        });
+        // return Cache::remember('app.todays_deal', 86400, function () {
+        $products = Product::where('todays_deal', 1)->physical();
+        return new ProductMiniCollection(filter_products($products)->limit(20)->latest()->get());
+        // });
     }
 
     public function flashDeal()
@@ -96,6 +207,8 @@ class ProductController extends Controller
 
     public function featured()
     {
+
+
         $products = Product::where('featured', 1)->physical();
         return new ProductMiniCollection(filter_products($products)->latest()->paginate(10));
     }
@@ -106,33 +219,33 @@ class ProductController extends Controller
         return new ProductMiniCollection(filter_products($products)->latest()->paginate(10));
     }
 
-    
+
 
     public function bestSeller()
     {
-        return Cache::remember('app.best_selling_products', 86400, function () {
-            $products = Product::orderBy('num_of_sale', 'desc')->physical();
-            return new ProductMiniCollection(filter_products($products)->limit(20)->get());
-        });
+        // return Cache::remember('app.best_selling_products', 86400, function () {
+        $products = Product::orderBy('num_of_sale', 'desc')->physical();
+        return new ProductMiniCollection(filter_products($products)->limit(20)->get());
+        // });
     }
 
     public function related($id)
     {
-        return Cache::remember("app.related_products-$id", 86400, function () use ($id) {
-            $product = Product::find($id);
-            $products = Product::where('category_id', $product->category_id)->where('id', '!=', $id)->physical();
-            return new ProductMiniCollection(filter_products($products)->limit(10)->get());
-        });
+        // return Cache::remember("app.related_products-$id", 86400, function () use ($id) {
+        $product = Product::find($id);
+        $products = Product::where('category_id', $product->category_id)->where('id', '!=', $id)->physical();
+        return new ProductMiniCollection(filter_products($products)->limit(10)->get());
+
+        // });
     }
 
     public function topFromSeller($id)
     {
-        return Cache::remember("app.top_from_this_seller_products-$id", 86400, function () use ($id) {
-            $product = Product::find($id);
-            $products = Product::where('user_id', $product->user_id)->orderBy('num_of_sale', 'desc')->physical();
-
-            return new ProductMiniCollection(filter_products($products)->limit(10)->get());
-        });
+        // return Cache::remember("app.top_from_this_seller_products-$id", 86400, function () use ($id) {
+        $product = Product::find($id);
+        $products = Product::where('user_id', $product->user_id)->orderBy('num_of_sale', 'desc')->physical();
+        return new ProductMiniCollection(filter_products($products)->limit(10)->get());
+        // });
     }
 
 
@@ -241,8 +354,9 @@ class ProductController extends Controller
             $temp_str = $str == "" ? $var_str : '-' . $var_str;
             $str .= $temp_str;
         }
+        return   $this->calc($product, $str, $request, $tax);
 
-
+        /*
         $product_stock = $product->stocks->where('variant', $str)->first();
         $price = $product_stock->price;
         $stockQuantity = $product_stock->qty;
@@ -284,7 +398,7 @@ class ProductController extends Controller
             'price_string' => format_price(convert_price($price)),
             'stock' => intval($stockQuantity),
             'image' => $product_stock->image == null ? "" : uploaded_asset($product_stock->image)
-        ]);
+        ]);*/
     }
 
     // public function home()

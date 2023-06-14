@@ -31,7 +31,7 @@ class OrderController extends Controller
         // Staff Permission Check
         $this->middleware(['permission:view_all_orders|view_inhouse_orders|view_seller_orders|view_pickup_point_orders'])->only('all_orders');
         $this->middleware(['permission:view_order_details'])->only('show');
-        $this->middleware(['permission:delete_order'])->only('destroy');
+        $this->middleware(['permission:delete_order'])->only('destroy','bulk_order_delete');
     }
 
     // All Orders
@@ -181,7 +181,6 @@ class OrderController extends Controller
 
             $order->additional_info = $request->additional_info;
 
-            //======== Closed By Kiron ==========
             // $order->shipping_type = $carts[0]['shipping_type'];
             // if ($carts[0]['shipping_type'] == 'pickup_point') {
             //     $order->pickup_point_id = $cartItem['pickup_point'];
@@ -251,8 +250,8 @@ class OrderController extends Controller
                 $product->save();
 
                 $order->seller_id = $product->user_id;
-                //======== Added By Kiron ==========
                 $order->shipping_type = $cartItem['shipping_type'];
+                
                 if ($cartItem['shipping_type'] == 'pickup_point') {
                     $order->pickup_point_id = $cartItem['pickup_point'];
                 }
@@ -295,6 +294,10 @@ class OrderController extends Controller
         }
 
         $combined_order->save();
+
+        foreach($combined_order->orders as $order){
+            NotificationUtility::sendOrderPlacedNotification($order);
+        }
 
         $request->session()->put('combined_order_id', $combined_order->id);
     }
@@ -510,7 +513,6 @@ class OrderController extends Controller
     public function update_payment_status(Request $request)
     {
         $order = Order::findOrFail($request->order_id);
-
         if ($request->commission && $request->status) {
             $order->commission_status = $request->status;
             $order->save();
@@ -521,7 +523,6 @@ class OrderController extends Controller
             $order->save();
             return 1;
         }
-
         $order->payment_status_viewed = '0';
         $order->save();
 

@@ -40,7 +40,7 @@
                 address: '{{ Session::get('shipping_info')['address'] }}',
                 city: '{{ Session::get('shipping_info')['city'] }}',
                 state: 'Customer state',
-                zipcode: '{{ Session::get('shipping_info')['postal_code'] ?? '' }}',
+                zipcode: '{{ Session::get('shipping_info')['postal_code'] }}',
                 email: '{{ Session::get('shipping_info')['email'] }}',
                 phone: '{{ Session::get('shipping_info')['phone'] }}'
             },

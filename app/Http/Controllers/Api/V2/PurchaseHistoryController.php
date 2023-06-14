@@ -50,24 +50,30 @@ class PurchaseHistoryController extends Controller
 
     public function digital_purchased_list()
     {
+        $order_detail_products = Product::query()
+            ->where('digital', 1)
+            ->whereHas('orderDetails', function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('payment_status', 'paid');
+                    $q->where('user_id', auth()->id());
+                });
+            })->paginate(15);
+        // $order_detail_products = OrderDetail::whereHas('order', function ($q) {
+        //     $q->where('payment_status', 'paid');
+        //     $q->where('user_id', auth()->id());
+        // })->with(['product' => function ($query) {
+        //     $query->where('digital', 1);
+        // }])
+        //     ->paginate(1);
 
+        //   $products = Product::with(['orderDetails', 'orderDetails.order' => function($q) {
+        //          $q->where('payment_status', 'paid');
+        //          $q->where('user_id', auth()->id());
+        //     }])
+        //     ->where('digital', 1)
+        //     ->paginate(15);  
 
-        $order_detail_products = OrderDetail::whereHas('order', function($q){
-    		$q->where('payment_status', 'paid');
-            $q->where('user_id', auth()->id());
-		})->with(['product' => function($query){
-            $query->where('digital', 1);
-          }])
-           ->paginate(15);
-      
-    //   $products = Product::with(['orderDetails', 'orderDetails.order' => function($q) {
-    //          $q->where('payment_status', 'paid');
-    //          $q->where('user_id', auth()->id());
-    //     }])
-    //     ->where('digital', 1)
-    //     ->paginate(15);  
-
-
+        // dd($order_detail_products);
 
         return PurchasedResource::collection($order_detail_products);
     }

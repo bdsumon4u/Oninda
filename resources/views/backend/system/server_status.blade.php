@@ -21,9 +21,9 @@
                         <tr>
                             <td>Php versions</td>
                             <td>{{ phpversion() }}</td>
-                            <td>7.3 or 7.4</td>
+                            <td>8.0</td>
                             <td>
-                                @if (floatval(phpversion()) >= 7.3 && floatval(phpversion()) <= 7.4)
+                                @if (floatval(phpversion()) >= 8.0)
                                 <i class="las la-check text-success"></i>
                                 @else
                                 <i class="las la-times text-danger"></i>
@@ -39,9 +39,9 @@
                                 @endphp
                                 {{ $mysql_version }}
                             </td>
-                            <td>5.6+</td>
+                            <td>10.0+</td>
                             <td>
-                                @if ($mysql_version >= 5.6)
+                                @if (floatval(explode("-",$mysql_version)[0]) >= 10.0)
                                 <i class="las la-check text-success"></i>
                                 @else
                                 <i class="las la-times text-danger"></i>
