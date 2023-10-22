@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use AizPackages\CombinationGenerate\Services\CombinationService;
 use App\Models\Color;
 use App\Models\Product;
 use App\Models\User;
@@ -80,7 +79,7 @@ class ProductService
 
         $options = ProductUtility::get_attribute_options($collection);
 
-        $combinations = (new CombinationService())->generate_combination($options);
+        $combinations = generate_combination($options);
         
         if (count($combinations) > 0) {
             foreach ($combinations as $key => $combination) {
@@ -232,7 +231,7 @@ class ProductService
 
         $options = ProductUtility::get_attribute_options($collection);
 
-        $combinations = (new CombinationService())->generate_combination($options);
+        $combinations = generate_combination($options);
         if (count($combinations) > 0) {
             foreach ($combinations as $key => $combination) {
                 $str = ProductUtility::get_combination_string($combination, $collection);

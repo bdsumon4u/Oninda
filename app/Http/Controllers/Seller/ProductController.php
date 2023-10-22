@@ -201,7 +201,7 @@ class ProductController extends Controller
             }
         }
 
-        $combinations = (new CombinationService())->generate_combination($options);
+        $combinations = generate_combination($options);
         return view('backend.product.products.sku_combinations', compact('combinations', 'unit_price', 'colors_active', 'product_name'));
     }
 
@@ -231,7 +231,7 @@ class ProductController extends Controller
             }
         }
 
-        $combinations = (new CombinationService())->generate_combination($options);
+        $combinations = generate_combination($options);
         return view('backend.product.products.sku_combinations_edit', compact('combinations', 'unit_price', 'colors_active', 'product_name', 'product'));
     }
 
