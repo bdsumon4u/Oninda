@@ -19,19 +19,24 @@ class ProductsExport implements FromCollection, WithMapping, WithHeadings
     {
         return [
             'name',
+            'item_code',
+            'barcode_symbology',
             'description',
-            'added_by',
-            'user_id',
-            'category_id',
-            'brand_id',
-            'video_provider',
-            'video_link',
-            'unit_price',
-            'purchase_price',
             'unit',
-            'current_stock',
-            'meta_title',
-            'meta_description',
+            'category',
+            'brand',
+            'tax',
+            'mrp',
+            'purchase_price',
+            'sales_price',
+            'purchase_tax_type',
+            'sales_tax_type',
+            'stock_quantitiy_alert',
+            'opening_stock',
+            'opening_stock_date',
+            'wholesale_price',
+            'wholesale_quantity',
+            'warehouse',
         ];
     }
 
@@ -40,24 +45,26 @@ class ProductsExport implements FromCollection, WithMapping, WithHeadings
     */
     public function map($product): array
     {
-        $qty = 0;
-        foreach ($product->stocks as $key => $stock) {
-            $qty += $stock->qty;
-        }
         return [
             $product->name,
+            $product->id,
+            'CODE128',
             $product->description,
-            $product->added_by,
-            $product->user_id,
-            $product->category_id,
-            $product->brand_id,
-            $product->video_provider,
-            $product->video_link,
+            'piece',
+            $product->category->name ?? 'Default',
+            $product->brand->name ?? 'Default',
+            '',
             $product->unit_price,
-            $product->purchase_price,
-            $product->unit,
-//            $product->current_stock,
-            $qty,
+            $product->unit_price,
+            $product->unit_price,
+            'exclusive',
+            'exclusive',
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            'Cosmetifly',
         ];
     }
 }
